@@ -1,0 +1,34 @@
+/* bluePi Slot — design tokens.
+   The four brand colours from the requirements doc are the whole palette;
+   everything else is a neutral derived from them so the UI reads as one system. */
+:root {
+  --brand-1: #9FA1FF;   /* periwinkle — primary */
+  --brand-2: #B5BAFF;   /* periwinkle light */
+  --brand-3: #AEE2FF;   /* sky */
+  --brand-4: #D9F9DF;   /* mint — used for wins */
+
+  --ink:        #1B1C2E;
+  --ink-2:      #4B4C68;
+  --ink-3:      #7B7C9C;
+  --ground:     #F7F7FE;
+  --surface:    #FFFFFF;
+  --surface-2:  #EFEFFA;
+  --line:       #E2E1F3;
+  --line-2:     #CFCEE8;
+
+  --accent:     #4B4EC4;   /* contrast-safe version of brand-1 for text/controls */
+  --win:        #1B7A52;
+  --danger:     #B23A2C;
+
+  --lane-pad: 10%;         /* spec: padding between symbol and wheel lane */
+
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+
+  --shadow-1: 0 1px 2px rgba(27,28,46,.06), 0 2px 8px rgba(27,28,46,.05);
+  --shadow-2: 0 4px 12px rgba(27,28,46,.08), 0 18px 40px rgba(75,78,196,.10);
+
+  --font-ui: "Bricolage Grotesque", "Helvetica Neue", Arial, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}

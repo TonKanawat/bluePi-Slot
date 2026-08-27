@@ -1,0 +1,127 @@
+.app { min-height: 100%; display: flex; flex-direction: column; }
+
+/* ---------------------------------------------------------------- top bar */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1.5rem; flex-wrap: wrap;
+  padding: 1.1rem clamp(1rem, 4vw, 2.5rem);
+}
+.brand { display: flex; align-items: center; gap: .65rem; }
+.brand-mark {
+  width: 26px; height: 26px; border-radius: 9px;
+  background: linear-gradient(135deg, var(--brand-1), var(--brand-3) 60%, var(--brand-4));
+  box-shadow: var(--shadow-1);
+}
+.brand-name { font-weight: 800; letter-spacing: -.02em; font-size: 1.1rem; }
+
+.wallets { display: flex; gap: .6rem; flex-wrap: wrap; }
+.wallet {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: .55rem .85rem; min-width: 148px; box-shadow: var(--shadow-1);
+}
+.wallet[data-kind='prize'] { border-color: var(--brand-1); }
+.wallet-label {
+  display: block; font-size: .68rem; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--ink-3);
+}
+.wallet-value {
+  display: block; font-family: var(--font-num); font-size: 1.32rem; font-weight: 500;
+  font-variant-numeric: tabular-nums; line-height: 1.25;
+}
+.wallet-note { display: block; font-size: .66rem; color: var(--ink-3); }
+
+/* ---------------------------------------------------------------- stage */
+.stage {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
+  padding: clamp(.5rem, 3vw, 2rem) 1rem 3rem;
+}
+
+.board {
+  width: min(560px, 100%);
+  background: linear-gradient(160deg, var(--brand-2), var(--brand-3) 55%, var(--brand-4));
+  padding: 10px; border-radius: var(--r-lg); box-shadow: var(--shadow-2);
+}
+.board-inner {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  background: var(--surface); border-radius: 16px; padding: 6px;
+}
+
+/* Each reel is a viewport exactly five square cells tall. The strip inside is
+   longer than that during a spin, and the overflow is what gets clipped —
+   without the aspect-ratio the reel grows to fit the strip and bursts the board. */
+.reel {
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--surface-2);
+  aspect-ratio: 1 / 5;
+}
+.reel-strip {
+  display: flex; flex-direction: column;
+  transition-property: transform;
+  transition-timing-function: cubic-bezier(.16, .84, .28, 1);
+  will-change: transform;
+}
+.reel-cell {
+  flex: 0 0 auto; width: 100%; aspect-ratio: 1; display: grid; place-items: center;
+  border-radius: 10px; transition: background-color .25s ease;
+}
+.reel-cell[data-lit='true'] { background: var(--brand-4); }
+
+/* Spec: 10% padding between the symbol and the lane. */
+.tile { width: 100%; height: 100%; padding: var(--lane-pad); transition: opacity .25s ease; }
+.tile[data-dim='true'] { opacity: .32; }
+.tile img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.tile-face {
+  width: 100%; height: 100%; border-radius: 9px; display: grid; place-items: center;
+  font-size: clamp(.42rem, 1.5vw, .62rem); font-weight: 700; letter-spacing: .04em;
+  text-align: center; padding: 2px; overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- controls */
+.controls {
+  width: min(560px, 100%); display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap;
+}
+.control-row { display: flex; align-items: center; gap: .7rem; }
+.control-label {
+  font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.bets { display: flex; gap: .3rem; flex-wrap: wrap; }
+.bet {
+  font-family: var(--font-num); font-size: .84rem; font-variant-numeric: tabular-nums;
+  padding: .45rem .6rem; min-width: 46px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line-2); border-radius: 10px;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.bet:hover:not(:disabled) { border-color: var(--brand-1); }
+.bet[data-active='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.bet:disabled { opacity: .38; cursor: not-allowed; }
+
+.spin {
+  cursor: pointer; border: none; border-radius: 999px; padding: .8rem 2.4rem;
+  font-size: 1rem; font-weight: 700; letter-spacing: .01em; color: #fff;
+  background: linear-gradient(135deg, var(--accent), #6C6FE0);
+  box-shadow: 0 2px 6px rgba(75,78,196,.28), 0 10px 26px rgba(75,78,196,.22);
+  transition: transform .12s ease, box-shadow .2s ease, opacity .2s ease;
+}
+.spin:hover:not(:disabled) { transform: translateY(-1px); }
+.spin:active:not(:disabled) { transform: translateY(1px); }
+.spin:disabled { opacity: .55; cursor: default; box-shadow: none; }
+
+.message {
+  margin: 0; color: var(--danger); font-size: .9rem; font-weight: 600;
+}
+.devnote {
+  margin: 0; max-width: 46ch; text-align: center; font-size: .78rem; color: var(--ink-3);
+  line-height: 1.55;
+}
+.devnote code {
+  font-family: var(--font-num); font-size: .95em;
+  background: var(--surface-2); padding: .05em .35em; border-radius: 4px;
+}
+
+@media (max-width: 520px) {
+  .controls { flex-direction: column; align-items: stretch; }
+  .control-row { justify-content: space-between; }
+  .spin { width: 100%; }
+}

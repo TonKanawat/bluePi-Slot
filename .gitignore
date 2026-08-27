@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+.env.local
+.DS_Store
+*.log
+.claude-write-test
+
+# vite writes these when the config changes
+vite.config.ts.timestamp-*.mjs
+tsconfig.tsbuildinfo
+
+# leftovers git could not delete over the device bridge — safe to remove
+_git_locks_to_delete/
