@@ -125,3 +125,62 @@
   .control-row { justify-content: space-between; }
   .spin { width: 100%; }
 }
+
+/* ---------------------------------------------------------------- auth & notices */
+.auth {
+  min-height: 100vh; display: grid; place-items: center; padding: 2rem 1.25rem;
+}
+.auth-card {
+  width: min(420px, 100%); background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+  padding: 2rem 1.75rem 1.5rem; box-shadow: var(--shadow-2);
+}
+.auth-card[data-tone='warn'] { border-color: var(--brand-1); }
+.auth-card .brand { margin-bottom: 1.75rem; }
+.auth-title {
+  font-size: 1.6rem; font-weight: 800; letter-spacing: -.022em;
+  margin: 0 0 .4rem; text-wrap: balance;
+}
+.auth-sub { color: var(--ink-2); font-size: .93rem; line-height: 1.55; margin: 0 0 1.5rem; }
+.auth-sub p { margin: 0 0 .6rem; }
+.auth-sub code {
+  font-family: var(--font-num); font-size: .88em;
+  background: var(--surface-2); padding: .1em .35em; border-radius: 4px;
+}
+
+.auth-form { display: flex; flex-direction: column; gap: 1rem; }
+.field { display: flex; flex-direction: column; gap: .35rem; }
+.field > span {
+  font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.field input {
+  font: inherit; font-size: .95rem; padding: .62rem .75rem;
+  border: 1px solid var(--line-2); border-radius: 10px;
+  background: var(--surface); color: var(--ink);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.field input:focus {
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(75, 78, 196, .14);
+}
+.auth-submit { width: 100%; margin-top: .25rem; }
+.auth-error  { color: var(--danger); font-size: .88rem; margin: 0; font-weight: 600; }
+.auth-notice { color: var(--win);    font-size: .88rem; margin: 0; font-weight: 600; }
+
+.linkish {
+  background: none; border: none; padding: .5rem 0; cursor: pointer;
+  color: var(--accent); font-size: .85rem; font-weight: 600; text-align: left;
+}
+.linkish:hover { text-decoration: underline; text-underline-offset: 3px; }
+.notice-action { margin-top: .5rem; }
+
+.missing { margin: .5rem 0 0; padding-left: 1.1rem; color: var(--ink-2); font-size: .9rem; }
+.missing li { margin-bottom: .3rem; }
+
+.who { display: flex; align-items: center; gap: .75rem; }
+.who-email { font-size: .8rem; color: var(--ink-3); font-family: var(--font-num); }
+
+@media (max-width: 720px) {
+  .topbar { gap: .8rem; }
+  .who { order: 3; width: 100%; justify-content: space-between; }
+}

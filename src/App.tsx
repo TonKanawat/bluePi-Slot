@@ -1,13 +1,89 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Board } from './components/Board';
 import { BetSelector } from './components/BetSelector';
 import { Wallets } from './components/Wallets';
+import { SignIn } from './components/SignIn';
+import { Notice } from './components/Notice';
 import { localDrawGrid } from './game/placeholder';
-import { isConnected } from './lib/supabase';
+import { supabase } from './lib/supabase';
+import { useSession } from './lib/session';
+import { fetchReadiness, type Readiness } from './lib/api';
 import type { Bet, WinningLine } from './game/types';
 import './styles/app.css';
 
 export default function App() {
+  const { loading, session, profile, rejected, signOut } = useSession();
+  const [readiness, setReadiness] = useState<Readiness | null>(null);
+  const [readinessError, setReadinessError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!profile) return;
+    fetchReadiness()
+      .then(setReadiness)
+      .catch((e: Error) => setReadinessError(e.message));
+  }, [profile]);
+
+  if (!supabase) {
+    return (
+      <Notice title="Not connected" tone="warn">
+        <p>
+          This deployment has no database configuration. Add{' '}
+          <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in the
+          hosting environment, then redeploy.
+        </p>
+      </Notice>
+    );
+  }
+
+  if (loading) {
+    return <Notice title="Loading…" />;
+  }
+
+  if (!session) {
+    return <SignIn />;
+  }
+
+  // Signed in with Supabase, but the address was never registered for the game.
+  if (rejected || !profile) {
+    return (
+      <Notice
+        title="Registration failed"
+        tone="warn"
+        action={<button className="linkish" onClick={signOut}>Sign out</button>}
+      >
+        <p>This account cannot be used. Please contact your system admin.</p>
+      </Notice>
+    );
+  }
+
+  if (readinessError) {
+    return (
+      <Notice title="Something went wrong" tone="warn"
+        action={<button className="linkish" onClick={signOut}>Sign out</button>}>
+        <p>{readinessError}</p>
+      </Notice>
+    );
+  }
+
+  if (readiness && !readiness.ready) {
+    return (
+      <Notice
+        title="The slot isn't ready yet"
+        action={<button className="linkish" onClick={signOut}>Sign out</button>}
+      >
+        <p>An admin still needs to finish setting up the game:</p>
+        <ul className="missing">
+          {readiness.missing.map((m) => <li key={m}>{m}</li>)}
+        </ul>
+      </Notice>
+    );
+  }
+
+  return <Game onSignOut={signOut} email={profile.email} />;
+}
+
+/** The playable board. Still on a local draw until the spin call is wired up next. */
+function Game({ onSignOut, email }: { onSignOut: () => void; email: string }) {
   const [grid, setGrid] = useState<string[][]>(() => localDrawGrid());
   const [spinToken, setSpinToken] = useState(0);
   const [spinning, setSpinning] = useState(false);
@@ -26,18 +102,13 @@ export default function App() {
       return;
     }
     setMessage(null);
-
-    // Free points are spent before the prize wallet.
     const fromFree = Math.min(freePoints, bet);
     setFreePoints((f) => f - fromFree);
     setPoints((p) => p - (bet - fromFree));
-
     setGrid(localDrawGrid());
     setSpinToken((t) => t + 1);
     setSpinning(true);
   }, [spinning, bet, affordable, freePoints]);
-
-  const onSettled = useCallback(() => setSpinning(false), []);
 
   return (
     <div className="app">
@@ -47,17 +118,17 @@ export default function App() {
           <span className="brand-name">bluePi Slot</span>
         </div>
         <Wallets freePoints={freePoints} points={points} />
+        <div className="who">
+          <span className="who-email">{email}</span>
+          <button className="linkish" onClick={onSignOut}>Sign out</button>
+        </div>
       </header>
 
       <main className="stage">
         <Board
-          grid={grid}
-          spinToken={spinToken}
-          winningLines={lines}
-          highlighted={null}
-          onAllSettled={onSettled}
+          grid={grid} spinToken={spinToken} winningLines={lines}
+          highlighted={null} onAllSettled={() => setSpinning(false)}
         />
-
         <div className="controls">
           <div className="control-row">
             <span className="control-label">Bet</span>
@@ -67,16 +138,7 @@ export default function App() {
             {spinning ? 'Spinning…' : 'Spin'}
           </button>
         </div>
-
         {message && <p className="message" role="status">{message}</p>}
-
-        {!isConnected() && (
-          <p className="devnote">
-            Running on placeholder symbols with a local draw. Spins become
-            server-authoritative once <code>.env.local</code> is filled in and the spin
-            endpoint lands.
-          </p>
-        )}
       </main>
     </div>
   );
