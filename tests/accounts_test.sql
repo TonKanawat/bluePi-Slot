@@ -229,3 +229,33 @@ reset slot.test_user;
 
 \echo ''
 \echo 'All account tests passed.'
+
+-- ---------------------------------------------------------------- 0011: settings must not fail silently
+do $$
+declare v numeric; ok boolean := false; msg text;
+begin
+  -- Readable regardless of who is asking: the lookup runs as its owner now.
+  perform slot.assert('setting readable by the owner',
+    slot.setting_int('first_login_grant'), 500::numeric);
+
+  -- A missing key raises with the key named, instead of returning NULL.
+  begin
+    perform slot.setting_int('no_such_setting');
+  exception when others then
+    ok := true; msg := sqlerrm;
+  end;
+  perform slot.assert('a missing setting raises', ok, true);
+  perform slot.assert('and names the key',
+    (position('no_such_setting' in msg) > 0), true);
+end $$;
+
+-- The exact bug from sign-in: a null grant must never reach the wallet.
+set slot.test_user = '';
+do $$
+declare v numeric;
+begin
+  set local role slot_client;
+  v := slot.setting_int('first_login_grant');
+  perform slot.assert('a signed-out caller still reads settings', v, 500::numeric);
+end $$;
+reset slot.test_user;
