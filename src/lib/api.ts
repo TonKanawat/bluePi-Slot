@@ -21,15 +21,13 @@ export async function fetchReadiness(): Promise<Readiness> {
   return data as Readiness;
 }
 
-export async function fetchWallet(userId: string) {
-  const { data, error } = await client()
-    .schema('slot')
-    .from('wallet')
-    .select('free_points, points')
-    .eq('user_id', userId)
-    .single();
+/** The caller's own balances. Goes through a public wrapper because PostgREST only
+ *  serves schemas listed as exposed, and `slot` deliberately is not one of them. */
+export async function fetchWallet() {
+  const { data, error } = await client().rpc('my_wallet');
   if (error) throw new Error(error.message);
-  return data as { free_points: number; points: number };
+  const row = (data as { free_points: number; points: number }[])?.[0];
+  return row ?? { free_points: 0, points: 0 };
 }
 
 /** The only way to spin. The grid, the win and the wallet write all happen server-side. */
