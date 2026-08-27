@@ -12,7 +12,7 @@ import type { Bet, WinningLine } from './game/types';
 import './styles/app.css';
 
 export default function App() {
-  const { loading, session, profile, rejected, signOut } = useSession();
+  const { loading, session, profile, rejected, claimError, signOut } = useSession();
   const [readiness, setReadiness] = useState<Readiness | null>(null);
   const [readinessError, setReadinessError] = useState<string | null>(null);
 
@@ -52,6 +52,7 @@ export default function App() {
         action={<button className="linkish" onClick={signOut}>Sign out</button>}
       >
         <p>This account cannot be used. Please contact your system admin.</p>
+        {claimError && <p className="detail">Details: <code>{claimError}</code></p>}
       </Notice>
     );
   }
