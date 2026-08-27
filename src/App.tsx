@@ -4,6 +4,7 @@ import { BetSelector } from './components/BetSelector';
 import { Wallets } from './components/Wallets';
 import { SignIn } from './components/SignIn';
 import { Notice } from './components/Notice';
+import { AdminPanel } from './components/AdminPanel';
 import { localDrawGrid } from './game/placeholder';
 import { supabase } from './lib/supabase';
 import { useSession } from './lib/session';
@@ -15,6 +16,7 @@ export default function App() {
   const { loading, session, profile, rejected, claimError, signOut } = useSession();
   const [readiness, setReadiness] = useState<Readiness | null>(null);
   const [readinessError, setReadinessError] = useState<string | null>(null);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -66,6 +68,21 @@ export default function App() {
     );
   }
 
+  const isAdmin = profile.role === 'system_admin' || profile.role === 'deputy_admin';
+
+  // An admin who opens the back office, or who has no choice because the game is
+  // not configured yet. Everyone else just gets told to wait.
+  if (isAdmin && (showAdmin || (readiness && !readiness.ready))) {
+    return (
+      <AdminPanel
+        email={profile.email}
+        onSignOut={signOut}
+        onReadinessChange={setReadiness}
+        onPlay={() => setShowAdmin(false)}
+      />
+    );
+  }
+
   if (readiness && !readiness.ready) {
     return (
       <Notice
@@ -80,11 +97,20 @@ export default function App() {
     );
   }
 
-  return <Game onSignOut={signOut} email={profile.email} />;
+  return (
+    <Game
+      onSignOut={signOut}
+      email={profile.email}
+      isAdmin={isAdmin}
+      onOpenAdmin={() => setShowAdmin(true)}
+    />
+  );
 }
 
 /** The playable board. Still on a local draw until the spin call is wired up next. */
-function Game({ onSignOut, email }: { onSignOut: () => void; email: string }) {
+function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
+  onSignOut: () => void; email: string; isAdmin: boolean; onOpenAdmin: () => void;
+}) {
   const [grid, setGrid] = useState<string[][]>(() => localDrawGrid());
   const [spinToken, setSpinToken] = useState(0);
   const [spinning, setSpinning] = useState(false);
@@ -121,6 +147,7 @@ function Game({ onSignOut, email }: { onSignOut: () => void; email: string }) {
         <Wallets freePoints={freePoints} points={points} />
         <div className="who">
           <span className="who-email">{email}</span>
+          {isAdmin && <button className="linkish" onClick={onOpenAdmin}>Back office</button>}
           <button className="linkish" onClick={onSignOut}>Sign out</button>
         </div>
       </header>

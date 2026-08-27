@@ -13,3 +13,4 @@ tsconfig.tsbuildinfo
 # leftovers git could not delete over the device bridge — safe to remove
 _git_locks_to_delete/
 dist-auth/
+dist-preview/
