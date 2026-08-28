@@ -83,7 +83,21 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
         </div>
 
         <div className="field">
-          <span>Members <b className="count">{picked.size}</b></span>
+          <span>
+            Members <b className="count">{picked.size} of {symbols.length}</b>
+            {symbols.length > 0 && (
+              <span className="pickall">
+                <button type="button" className="linkish"
+                        onClick={() => setPicked(new Set(symbols.map((s) => s.id)))}>
+                  Select all
+                </button>
+                <button type="button" className="linkish"
+                        onClick={() => setPicked(new Set())}>
+                  Clear
+                </button>
+              </span>
+            )}
+          </span>
           {symbols.length === 0 ? (
             <p className="empty">Upload some symbols first.</p>
           ) : (
@@ -104,6 +118,12 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
         </div>
 
         {rule && <p className="hint">{rule}</p>}
+        {picked.size > 0 && picked.size < symbols.length && (
+          <p className="hint">
+            Not included: {symbols.filter((s) => !picked.has(s.id)).map((s) => s.name).join(', ')}.
+            A line loses if even one of its five cells is a symbol this group leaves out.
+          </p>
+        )}
         {error && <p className="auth-error" role="alert">{error}</p>}
 
         <div className="form-actions">

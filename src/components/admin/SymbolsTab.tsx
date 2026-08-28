@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import {
   archiveSymbol, saveSymbol, symbolUrl, uploadSymbolImage,
-  type SymbolRow,
+  type CombinationRow, type SymbolRow,
 } from '../../lib/admin';
 import { SymbolList } from './SymbolList';
 
 interface Props {
   symbols: SymbolRow[];
+  combinations: CombinationRow[];
   onChanged: () => void;
 }
 
@@ -16,7 +17,7 @@ function kindOf(s: SymbolRow): Kind {
   return s.is_wild ? 'wild' : s.is_scatter ? 'scatter' : 'normal';
 }
 
-export function SymbolsTab({ symbols, onChanged }: Props) {
+export function SymbolsTab({ symbols, combinations, onChanged }: Props) {
   const [editing, setEditing] = useState<SymbolRow | null>(null);
   const [name, setName] = useState('');
   const [weight, setWeight] = useState(100);
@@ -27,6 +28,14 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // A symbol in no group is invisible to the win engine: every line it lands on
+  // fails, because a line pays only when all five cells belong to one group.
+  const ungrouped = useMemo(() => {
+    const covered = new Set<string>();
+    for (const c of combinations) for (const s of c.symbols) covered.add(s.id);
+    return new Set(symbols.filter((s) => !covered.has(s.id)).map((s) => s.id));
+  }, [symbols, combinations]);
 
   function reset() {
     setEditing(null); setName(''); setWeight(100); setKind('normal');
@@ -155,6 +164,7 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
       <SymbolList
         symbols={symbols}
         editingId={editing?.id ?? null}
+        ungrouped={ungrouped}
         onEdit={edit}
         onArchive={remove}
       />

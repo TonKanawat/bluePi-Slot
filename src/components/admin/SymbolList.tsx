@@ -37,11 +37,13 @@ function sortBy(rows: SymbolRow[], key: SortKey): SymbolRow[] {
 interface CardProps {
   symbol: SymbolRow;
   editingId: string | null;
+  /** True when this symbol is in no active winning combination. */
+  orphan: boolean;
   onEdit: (s: SymbolRow) => void;
   onArchive: (s: SymbolRow) => void;
 }
 
-function SymbolCard({ symbol: s, editingId, onEdit, onArchive }: CardProps) {
+function SymbolCard({ symbol: s, editingId, orphan, onEdit, onArchive }: CardProps) {
   return (
     <figure className="sym-card" data-editing={editingId === s.id ? 'true' : undefined}>
       <div className="sym-img">
@@ -53,6 +55,11 @@ function SymbolCard({ symbol: s, editingId, onEdit, onArchive }: CardProps) {
           weight {s.weight}
           {s.is_wild && <em className="tag wild">wild</em>}
           {s.is_scatter && <em className="tag scatter">scatter · {s.scatter_free_spins}</em>}
+          {orphan && (
+            <em className="tag orphan" title="Any payline containing this symbol loses, because no winning combination includes it.">
+              in no group
+            </em>
+          )}
         </span>
       </figcaption>
       <div className="sym-actions">
@@ -66,6 +73,8 @@ function SymbolCard({ symbol: s, editingId, onEdit, onArchive }: CardProps) {
 interface Props {
   symbols: SymbolRow[];
   editingId: string | null;
+  /** Ids of symbols that belong to no active winning combination. */
+  ungrouped: Set<string>;
   onEdit: (s: SymbolRow) => void;
   onArchive: (s: SymbolRow) => void;
 }
@@ -76,7 +85,7 @@ const SECTION_NOTE: Record<Exclude<Category, 'all'>, string> = {
   scatter: 'Grant free spins wherever they land. Their weight sets almost the whole payout rate.',
 };
 
-export function SymbolList({ symbols, editingId, onEdit, onArchive }: Props) {
+export function SymbolList({ symbols, editingId, ungrouped, onEdit, onArchive }: Props) {
   const [sort, setSort] = useState<SortKey>('name-asc');
   const [category, setCategory] = useState<Category>('all');
 
@@ -101,7 +110,19 @@ export function SymbolList({ symbols, editingId, onEdit, onArchive }: Props) {
         Symbols <span className="count">{symbols.length}</span>
         {symbols.length < 5 && <span className="warnpill">need at least 5</span>}
         {counts.scatter === 0 && <span className="infopill">no scatter yet — free spins are off</span>}
+        {ungrouped.size > 0 && (
+          <span className="warnpill">{ungrouped.size} in no group</span>
+        )}
       </h3>
+
+      {ungrouped.size > 0 && (
+        <p className="notice-line" role="status">
+          <b>{[...ungrouped].length} symbol{ungrouped.size === 1 ? '' : 's'} belong to no winning
+          combination.</b> A payline only pays when <em>every</em> cell on it is a member of one
+          group, so any line these land on loses, however good it looks. Add them to a group on the
+          Winning combinations tab.
+        </p>
+      )}
 
       <div className="listbar">
         <div className="chips" role="group" aria-label="Filter by type">
@@ -143,6 +164,7 @@ export function SymbolList({ symbols, editingId, onEdit, onArchive }: Props) {
               <div className="sym-grid">
                 {rows.map((s) => (
                   <SymbolCard key={s.id} symbol={s} editingId={editingId}
+                              orphan={ungrouped.has(s.id)}
                               onEdit={onEdit} onArchive={onArchive} />
                 ))}
               </div>

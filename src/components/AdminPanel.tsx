@@ -99,7 +99,8 @@ export function AdminPanel({ email, onSignOut, onReadinessChange, onPlay }: Prop
 
         {error && <p className="auth-error" role="alert">{error}</p>}
 
-        {tab === 'symbols' && <SymbolsTab symbols={symbols} onChanged={reload} />}
+        {tab === 'symbols' &&
+          <SymbolsTab symbols={symbols} combinations={combinations} onChanged={reload} />}
         {tab === 'combinations' &&
           <CombinationsTab symbols={symbols} combinations={combinations} onChanged={reload} />}
         {tab === 'players' && <PlayersTab players={players} onChanged={reload} />}

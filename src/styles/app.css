@@ -270,6 +270,19 @@
 .tag.scatter { background: var(--danger); color: #fff; }
 .tag.bonus { background: var(--brand-4); color: var(--win); }
 .tag.rule { background: var(--surface-2); color: var(--ink-3); }
+.tag.orphan { background: #FBEDEA; color: var(--danger); }
+
+/* A symbol in no group silently loses every line it touches, so the warning gets
+   more room than a pill. */
+.notice-line {
+  margin: 0 0 .2rem; padding: .6rem .75rem; border-radius: 10px;
+  background: #FBEDEA; color: var(--ink-2); font-size: .82rem; line-height: 1.55;
+  border: 1px solid #F2D6CF;
+}
+.notice-line b { color: var(--danger); }
+
+.pickall { display: inline-flex; gap: .6rem; margin-left: .55rem; }
+.pickall .linkish { font-size: .72rem; }
 .linkish.danger { color: var(--danger); }
 
 .pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: .5rem; }
