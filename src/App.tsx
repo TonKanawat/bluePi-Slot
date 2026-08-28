@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Board } from './components/Board';
 import { BetSelector } from './components/BetSelector';
 import { Wallets } from './components/Wallets';
 import { SignIn } from './components/SignIn';
 import { Notice } from './components/Notice';
 import { AdminPanel } from './components/AdminPanel';
-import { localDrawGrid } from './game/placeholder';
 import { supabase } from './lib/supabase';
 import { useSession } from './lib/session';
-import { fetchReadiness, type Readiness } from './lib/api';
-import type { Bet, WinningLine } from './game/types';
+import {
+  fetchActiveSymbols, fetchReadiness, fetchWallet, play,
+  type Readiness, type SpinResult, type Wallet,
+} from './lib/api';
+import type { SymbolRow } from './lib/admin';
+import type { Bet } from './game/types';
 import './styles/app.css';
 
 export default function App() {
@@ -107,35 +110,63 @@ export default function App() {
   );
 }
 
-/** The playable board. Still on a local draw until the spin call is wired up next. */
+/** The playable board. Every spin is decided by the server: the grid, the win and
+ *  the wallet all come back from one call, and the browser only animates them. */
 function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
   onSignOut: () => void; email: string; isAdmin: boolean; onOpenAdmin: () => void;
 }) {
-  const [grid, setGrid] = useState<string[][]>(() => localDrawGrid());
+  const [symbols, setSymbols] = useState<SymbolRow[]>([]);
+  const [grid, setGrid] = useState<string[][]>([]);
   const [spinToken, setSpinToken] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [bet, setBet] = useState<Bet>(25);
-  const [freePoints, setFreePoints] = useState(500);
-  const [points, setPoints] = useState(0);
-  const [lines] = useState<WinningLine[]>([]);
+  const [wallet, setWallet] = useState<Wallet>({ free_points: 0, points: 0 });
+  const [result, setResult] = useState<SpinResult | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const affordable = freePoints + points;
+  const byId = useMemo(() => new Map(symbols.map((s) => [s.id, s])), [symbols]);
+  const affordable = wallet.free_points + wallet.points;
+  const freeSpinsLeft = result?.free_spins_left ?? 0;
 
-  const spin = useCallback(() => {
+  // Load the real symbols and the real balance before anything is shown.
+  useEffect(() => {
+    let alive = true;
+    Promise.all([fetchActiveSymbols(), fetchWallet()])
+      .then(([syms, w]) => {
+        if (!alive) return;
+        setSymbols(syms);
+        setWallet(w);
+        // A resting board, drawn from the real symbol set, before the first spin.
+        setGrid(Array.from({ length: 5 }, () =>
+          Array.from({ length: 5 }, () => syms[Math.floor(Math.random() * syms.length)]?.id ?? '')));
+        setLoading(false);
+      })
+      .catch((e: Error) => { if (alive) { setMessage(e.message); setLoading(false); } });
+    return () => { alive = false; };
+  }, []);
+
+  const spin = useCallback(async () => {
     if (spinning) return;
-    if (bet > affordable) {
+    if (freeSpinsLeft === 0 && bet > affordable) {
       setMessage("You don't have enough points for that bet.");
       return;
     }
     setMessage(null);
-    const fromFree = Math.min(freePoints, bet);
-    setFreePoints((f) => f - fromFree);
-    setPoints((p) => p - (bet - fromFree));
-    setGrid(localDrawGrid());
-    setSpinToken((t) => t + 1);
     setSpinning(true);
-  }, [spinning, bet, affordable, freePoints]);
+    try {
+      const r = await play(bet);
+      setResult(r);
+      setGrid(r.grid);
+      setWallet({ free_points: r.free_points, points: r.points });
+      setSpinToken((t) => t + 1);
+    } catch (err) {
+      setSpinning(false);
+      setMessage(err instanceof Error ? err.message : 'That spin could not be played.');
+    }
+  }, [spinning, bet, affordable, freeSpinsLeft]);
+
+  if (loading) return <Notice title="Loading…" />;
 
   return (
     <div className="app">
@@ -144,7 +175,7 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
           <span className="brand-mark" aria-hidden="true" />
           <span className="brand-name">bluePi Slot</span>
         </div>
-        <Wallets freePoints={freePoints} points={points} />
+        <Wallets freePoints={wallet.free_points} points={wallet.points} />
         <div className="who">
           <span className="who-email">{email}</span>
           {isAdmin && <button className="linkish" onClick={onOpenAdmin}>Back office</button>}
@@ -154,18 +185,49 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
 
       <main className="stage">
         <Board
-          grid={grid} spinToken={spinToken} winningLines={lines}
-          highlighted={null} onAllSettled={() => setSpinning(false)}
+          grid={grid} byId={byId} pool={symbols} spinToken={spinToken}
+          winningLines={result?.lines ?? []} highlighted={null}
+          onAllSettled={() => setSpinning(false)}
         />
+
+        {result && !spinning && (
+          <div className="outcome" data-win={result.payout > 0 ? 'true' : undefined}>
+            {result.line_count > 0 ? (
+              <p>
+                <b>{result.line_count} winning {result.line_count === 1 ? 'line' : 'lines'}</b>
+                {' · '}×{result.multiplier}
+                {' · '}<b>+{result.payout.toLocaleString()} points</b>
+                {result.was_free_spin && <span className="tag rule">free spin</span>}
+              </p>
+            ) : (
+              <p>No winning lines this time.{result.was_free_spin && <span className="tag rule">free spin</span>}</p>
+            )}
+            {freeSpinsLeft > 0 && (
+              <p className="freespins">
+                <b>{freeSpinsLeft} free {freeSpinsLeft === 1 ? 'spin' : 'spins'} left</b>
+                {' · '}round {result.free_spin_round} of 3
+                {' · '}playing at {result.bet} points
+              </p>
+            )}
+            {result.yellow_card && (
+              <p className="yellow">
+                Yellow card — no more free spins for {result.ban_bets_left} more bets.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="controls">
           <div className="control-row">
             <span className="control-label">Bet</span>
-            <BetSelector value={bet} onChange={setBet} disabled={spinning} affordable={affordable} />
+            <BetSelector value={bet} onChange={setBet}
+                         disabled={spinning || freeSpinsLeft > 0} affordable={affordable} />
           </div>
           <button className="spin" onClick={spin} disabled={spinning}>
-            {spinning ? 'Spinning…' : 'Spin'}
+            {spinning ? 'Spinning…' : freeSpinsLeft > 0 ? `Free spin (${freeSpinsLeft})` : 'Spin'}
           </button>
         </div>
+
         {message && <p className="message" role="status">{message}</p>}
       </main>
     </div>

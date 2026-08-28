@@ -1,18 +1,21 @@
 import { useMemo } from 'react';
 import { Reel } from './Reel';
 import { PAYLINE_BY_ID } from '../game/paylines';
-import type { WinningLine } from '../game/types';
+import type { SymbolRow } from '../lib/admin';
+import type { WinningLine } from '../lib/api';
 
 interface Props {
-  grid: string[][];              // [row][col]
+  /** [row][col] of symbol ids, exactly as the server drew it. */
+  grid: string[][];
+  byId: Map<string, SymbolRow>;
+  pool: SymbolRow[];
   spinToken: number;
   winningLines: WinningLine[];
-  highlighted: number | null;    // payline id being previewed, or null for all
+  highlighted: number | null;
   onAllSettled?: () => void;
 }
 
-export function Board({ grid, spinToken, winningLines, highlighted, onAllSettled }: Props) {
-  // Which cells are lit, grouped by column so each Reel gets only its own rows.
+export function Board({ grid, byId, pool, spinToken, winningLines, highlighted, onAllSettled }: Props) {
   const litByCol = useMemo(() => {
     const ids = highlighted !== null ? [highlighted] : winningLines.map((l) => l.payline);
     const cols: Set<number>[] = [0, 1, 2, 3, 4].map(() => new Set<number>());
@@ -25,8 +28,8 @@ export function Board({ grid, spinToken, winningLines, highlighted, onAllSettled
   const anyLit = litByCol.some((s) => s.size > 0);
 
   const columns = useMemo(
-    () => [0, 1, 2, 3, 4].map((col) => grid.map((row) => row[col])),
-    [grid],
+    () => [0, 1, 2, 3, 4].map((col) => grid.map((row) => byId.get(row?.[col]))),
+    [grid, byId],
   );
 
   return (
@@ -36,6 +39,7 @@ export function Board({ grid, spinToken, winningLines, highlighted, onAllSettled
           <Reel
             key={col}
             final={final}
+            pool={pool}
             spinToken={spinToken}
             delayMs={col * 140}
             litRows={litByCol[col]}

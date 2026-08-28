@@ -114,3 +114,46 @@ export async function archiveCombination(id: string): Promise<void> {
 
 /** The special multipliers the spec allows, and nothing else. */
 export const BONUS_OPTIONS = [0, 0.25, 0.5, 0.75, 1, 1.25, 1.5] as const;
+
+// ---------------------------------------------------------------- players
+export interface PlayerRow {
+  id: string;
+  email: string;
+  display_name: string | null;
+  role: 'system_admin' | 'deputy_admin' | 'line_manager' | 'player';
+  is_active: boolean;
+  first_login_at: string | null;
+  free_points: number;
+  points: number;
+}
+
+export async function fetchPlayers(): Promise<PlayerRow[]> {
+  const { data, error } = await client().from('players').select('*').order('email');
+  if (error) throw new Error(error.message);
+  return data as PlayerRow[];
+}
+
+/** Deltas, not absolutes: the ledger records the change and who made it, and the
+ *  database refuses anything that would push a balance below zero. */
+export async function adjustPoints(
+  target: string, freeDelta: number, pointsDelta: number, note: string,
+): Promise<{ free_points: number; points: number }> {
+  const { data, error } = await client().rpc('adjust_points', {
+    p_target: target, p_free_delta: freeDelta, p_points_delta: pointsDelta, p_note: note || null,
+  });
+  if (error) throw new Error(error.message);
+  return data as { free_points: number; points: number };
+}
+
+export async function registerPlayer(email: string, displayName: string): Promise<string> {
+  const { data, error } = await client().rpc('register_player', {
+    p_email: email, p_display_name: displayName || null,
+  });
+  if (error) throw new Error(error.message);
+  return data as string;
+}
+
+export async function setRole(target: string, role: PlayerRow['role']): Promise<void> {
+  const { error } = await client().rpc('set_role', { p_target: target, p_role: role });
+  if (error) throw new Error(error.message);
+}

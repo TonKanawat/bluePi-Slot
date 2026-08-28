@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useState } from 'react';
 import { SymbolsTab } from './admin/SymbolsTab';
 import { CombinationsTab } from './admin/CombinationsTab';
-import { fetchCombinations, fetchSymbols, type CombinationRow, type SymbolRow } from '../lib/admin';
+import { PlayersTab } from './admin/PlayersTab';
+import {
+  fetchCombinations, fetchPlayers, fetchSymbols,
+  type CombinationRow, type PlayerRow, type SymbolRow,
+} from '../lib/admin';
 import { fetchReadiness, type Readiness } from '../lib/api';
 
 interface Props {
@@ -12,20 +16,24 @@ interface Props {
   onPlay?: () => void;
 }
 
-type Tab = 'symbols' | 'combinations';
+type Tab = 'symbols' | 'combinations' | 'players';
 
 export function AdminPanel({ email, onSignOut, onReadinessChange, onPlay }: Props) {
   const [tab, setTab] = useState<Tab>('symbols');
   const [symbols, setSymbols] = useState<SymbolRow[]>([]);
   const [combinations, setCombinations] = useState<CombinationRow[]>([]);
+  const [players, setPlayers] = useState<PlayerRow[]>([]);
   const [readiness, setReadiness] = useState<Readiness | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     try {
-      const [s, c, r] = await Promise.all([fetchSymbols(), fetchCombinations(), fetchReadiness()]);
+      const [s, c, p, r] = await Promise.all([
+        fetchSymbols(), fetchCombinations(), fetchPlayers(), fetchReadiness(),
+      ]);
       setSymbols(s);
       setCombinations(c);
+      setPlayers(p);
       setReadiness(r);
       onReadinessChange?.(r);
       setError(null);
@@ -82,13 +90,19 @@ export function AdminPanel({ email, onSignOut, onReadinessChange, onPlay }: Prop
                   onClick={() => setTab('combinations')}>
             Winning combinations <span className="count">{combinations.length}</span>
           </button>
+          <button role="tab" aria-selected={tab === 'players'}
+                  data-on={tab === 'players' ? 'true' : undefined}
+                  onClick={() => setTab('players')}>
+            People <span className="count">{players.length}</span>
+          </button>
         </nav>
 
         {error && <p className="auth-error" role="alert">{error}</p>}
 
-        {tab === 'symbols'
-          ? <SymbolsTab symbols={symbols} onChanged={reload} />
-          : <CombinationsTab symbols={symbols} combinations={combinations} onChanged={reload} />}
+        {tab === 'symbols' && <SymbolsTab symbols={symbols} onChanged={reload} />}
+        {tab === 'combinations' &&
+          <CombinationsTab symbols={symbols} combinations={combinations} onChanged={reload} />}
+        {tab === 'players' && <PlayersTab players={players} onChanged={reload} />}
       </main>
     </div>
   );

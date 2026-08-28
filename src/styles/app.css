@@ -358,3 +358,49 @@
   flex: 1 1 260px; font-family: var(--font-ui); font-weight: 400;
   font-size: .74rem; color: var(--ink-3); line-height: 1.45;
 }
+
+/* ---------------------------------------------------------------- live board */
+.tile img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.tile-blank { width: 100%; height: 100%; border-radius: 9px; background: var(--surface-2); }
+
+.outcome {
+  width: min(560px, 100%); text-align: center; font-size: .95rem; color: var(--ink-2);
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
+  padding: .8rem 1rem; display: flex; flex-direction: column; gap: .35rem;
+}
+.outcome[data-win='true'] { border-color: var(--win); background: var(--brand-4); color: var(--ink); }
+.outcome p { margin: 0; }
+.outcome .tag { margin-left: .5rem; }
+.freespins { font-size: .86rem; color: var(--accent); }
+.yellow {
+  font-size: .86rem; font-weight: 600; color: #8A6100;
+  background: #FDF3D8; border-radius: 8px; padding: .35rem .6rem;
+}
+
+/* ---------------------------------------------------------------- people table */
+.ptable { border-collapse: collapse; width: 100%; min-width: 620px; }
+.ptable th, .ptable td {
+  text-align: left; padding: .65rem .7rem; border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.ptable thead th {
+  font-size: .66rem; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--ink-3); font-weight: 600; border-bottom: 1px solid var(--line-2);
+}
+.ptable td.num, .ptable th.num {
+  text-align: right; font-family: var(--font-num); font-variant-numeric: tabular-nums;
+}
+.ptable tbody tr[data-open='true'] { background: var(--surface-2); }
+.ptable tbody tr[data-open='true'] td { border-bottom: none; }
+.pemail { display: block; font-size: .72rem; color: var(--ink-3); font-family: var(--font-num); }
+.rolesel {
+  font: inherit; font-size: .8rem; padding: .28rem .5rem; width: auto;
+  border: 1px solid var(--line-2); border-radius: 8px;
+  background: var(--surface); color: var(--ink); text-transform: capitalize;
+}
+
+.adjrow td { background: var(--surface-2); padding-top: .2rem; }
+.adjust { display: flex; align-items: flex-end; gap: .7rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.adjust .field { flex: 0 0 120px; }
+.adjust .field.grow { flex: 1 1 200px; }
+.spin.small { padding: .5rem 1.2rem; font-size: .86rem; border-radius: 10px; }
