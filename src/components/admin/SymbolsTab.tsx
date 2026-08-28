@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import {
   archiveSymbol, saveSymbol, symbolUrl, uploadSymbolImage,
   type SymbolRow,
@@ -11,7 +11,12 @@ interface Props {
 
 type Kind = 'normal' | 'wild' | 'scatter';
 
+function kindOf(s: SymbolRow): Kind {
+  return s.is_wild ? 'wild' : s.is_scatter ? 'scatter' : 'normal';
+}
+
 export function SymbolsTab({ symbols, onChanged }: Props) {
+  const [editing, setEditing] = useState<SymbolRow | null>(null);
   const [name, setName] = useState('');
   const [weight, setWeight] = useState(100);
   const [kind, setKind] = useState<Kind>('normal');
@@ -20,19 +25,46 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  async function add(e: FormEvent) {
+  function reset() {
+    setEditing(null); setName(''); setWeight(100); setKind('normal');
+    setRounds(5); setFile(null); setError(null);
+    if (fileRef.current) fileRef.current.value = '';
+  }
+
+  function edit(s: SymbolRow) {
+    setEditing(s);
+    setName(s.name);
+    setWeight(s.weight);
+    setKind(kindOf(s));
+    setRounds(s.scatter_free_spins || 5);
+    setFile(null);
+    setError(null);
+    if (fileRef.current) fileRef.current.value = '';
+  }
+
+  // Bring the form into view when editing starts from a card further down the page.
+  useEffect(() => {
+    if (editing) formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [editing]);
+
+  async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
-    if (!file) { setError('Choose an image first.'); return; }
-    if (file.size > 300 * 1024) { setError('That image is over 300 KB.'); return; }
+
+    if (!editing && !file) { setError('Choose an image first.'); return; }
+    if (file && file.size > 300 * 1024) { setError('That image is over 300 KB.'); return; }
 
     setBusy(true);
     try {
-      const path = await uploadSymbolImage(file);
-      await saveSymbol({ name, image_path: path, weight, kind, scatter_free_spins: rounds });
-      setName(''); setWeight(100); setKind('normal'); setRounds(5); setFile(null);
-      if (fileRef.current) fileRef.current.value = '';
+      // Editing without picking a new file keeps the picture it already has.
+      const path = file ? await uploadSymbolImage(file) : editing!.image_path;
+      await saveSymbol({
+        id: editing?.id ?? null,
+        name, image_path: path, weight, kind, scatter_free_spins: rounds,
+      });
+      reset();
       onChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not save that symbol.');
@@ -45,6 +77,7 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
     setError(null);
     try {
       await archiveSymbol(s.id);
+      if (editing?.id === s.id) reset();
       onChanged();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not archive that symbol.');
@@ -55,14 +88,22 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
 
   return (
     <div className="admin-pane">
-      <form className="card form" onSubmit={add}>
-        <h3>Add a symbol</h3>
+      <form className="card form" onSubmit={submit} ref={formRef}>
+        <h3>{editing ? `Edit ${editing.name}` : 'Add a symbol'}</h3>
+
+        {editing && (
+          <div className="edit-current">
+            <img src={symbolUrl(editing.image_path)} alt="" />
+            <span>Leave the file empty to keep this picture.</span>
+          </div>
+        )}
 
         <label className="field">
-          <span>Image — square PNG or WebP, under 300 KB</span>
+          <span>{editing ? 'Replace image (optional)' : 'Image — square PNG or WebP, under 300 KB'}</span>
           <input
             ref={fileRef} type="file" accept="image/png,image/webp,image/svg+xml"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)} required
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            required={!editing}
           />
         </label>
 
@@ -103,7 +144,13 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
         </p>
 
         {error && <p className="auth-error" role="alert">{error}</p>}
-        <button className="spin" disabled={busy}>{busy ? 'Saving…' : 'Add symbol'}</button>
+
+        <div className="form-actions">
+          <button className="spin" disabled={busy}>
+            {busy ? 'Saving…' : editing ? 'Save changes' : 'Add symbol'}
+          </button>
+          {editing && <button type="button" className="linkish" onClick={reset}>Cancel</button>}
+        </div>
       </form>
 
       <div className="card">
@@ -118,7 +165,7 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
         ) : (
           <div className="sym-grid">
             {symbols.map((s) => (
-              <figure key={s.id} className="sym-card">
+              <figure key={s.id} className="sym-card" data-editing={editing?.id === s.id ? 'true' : undefined}>
                 <div className="sym-img">
                   <img src={symbolUrl(s.image_path)} alt={s.name} loading="lazy" />
                 </div>
@@ -130,7 +177,10 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
                     {s.is_scatter && <em className="tag scatter">scatter · {s.scatter_free_spins}</em>}
                   </span>
                 </figcaption>
-                <button className="linkish danger" onClick={() => remove(s)}>Archive</button>
+                <div className="sym-actions">
+                  <button className="linkish" onClick={() => edit(s)}>Edit</button>
+                  <button className="linkish danger" onClick={() => remove(s)}>Archive</button>
+                </div>
               </figure>
             ))}
           </div>

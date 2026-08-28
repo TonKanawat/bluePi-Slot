@@ -298,3 +298,14 @@
 .field { min-width: 0; }
 .field input, .field select { width: 100%; min-width: 0; }
 .row2 > * { min-width: 0; }
+
+.sym-actions { display: flex; gap: .7rem; }
+.sym-card[data-editing='true'] { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(75,78,196,.14); }
+.edit-current {
+  display: flex; align-items: center; gap: .7rem; padding: .6rem .7rem;
+  background: var(--surface-2); border-radius: 10px; font-size: .78rem; color: var(--ink-3);
+}
+.edit-current img {
+  width: 42px; height: 42px; object-fit: contain; background: var(--surface);
+  border-radius: 8px; padding: 4px; flex: 0 0 auto;
+}
