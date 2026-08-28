@@ -404,3 +404,25 @@
 .adjust .field { flex: 0 0 120px; }
 .adjust .field.grow { flex: 1 1 200px; }
 .spin.small { padding: .5rem 1.2rem; font-size: .86rem; border-radius: 10px; }
+
+/* ---------------------------------------------------------------- why panel */
+.why { margin-top: .3rem; }
+.why > .linkish { font-size: .82rem; }
+.whytable { border-collapse: collapse; width: 100%; min-width: 520px; text-align: left; }
+.whytable th, .whytable td {
+  padding: .45rem .6rem; border-bottom: 1px solid var(--line); vertical-align: top;
+  font-size: .82rem;
+}
+.whytable thead th {
+  font-size: .64rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.whytable td.num {
+  font-family: var(--font-num); font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.whytable .fam {
+  display: block; font-size: .62rem; color: var(--ink-3); text-transform: capitalize;
+}
+.whytable .syms { font-family: var(--font-num); font-size: .74rem; color: var(--ink-2); }
+.whytable tr[data-won='true'] { background: var(--brand-4); }
+.wonlbl { color: var(--win); }
+.reason { color: var(--ink-3); }

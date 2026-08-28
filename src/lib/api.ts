@@ -74,3 +74,19 @@ export async function play(bet: number): Promise<SpinResult> {
   if (error) throw new Error(error.message);
   return data as SpinResult;
 }
+
+export interface LineExplanation {
+  payline: number;
+  family: string;
+  symbols: string;
+  won: boolean;
+  group: string | null;
+  reason: string | null;
+}
+
+/** Why each payline did or did not win, for the grid just played. */
+export async function explainGrid(grid: string[][]): Promise<LineExplanation[]> {
+  const { data, error } = await client().rpc('explain_grid', { p_grid: grid });
+  if (error) throw new Error(error.message);
+  return data as LineExplanation[];
+}

@@ -4,6 +4,7 @@ import { BetSelector } from './components/BetSelector';
 import { Wallets } from './components/Wallets';
 import { SignIn } from './components/SignIn';
 import { Notice } from './components/Notice';
+import { WhyPanel } from './components/WhyPanel';
 import { AdminPanel } from './components/AdminPanel';
 import { supabase } from './lib/supabase';
 import { useSession } from './lib/session';
@@ -209,6 +210,7 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
                 {' · '}playing at {result.bet} points
               </p>
             )}
+            <WhyPanel grid={result.grid} />
             {result.yellow_card && (
               <p className="yellow">
                 Yellow card — no more free spins for {result.ban_bets_left} more bets.
