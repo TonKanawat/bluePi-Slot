@@ -14,3 +14,4 @@ tsconfig.tsbuildinfo
 _git_locks_to_delete/
 dist-auth/
 dist-preview/
+_rolled_back/
