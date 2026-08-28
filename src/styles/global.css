@@ -4,10 +4,14 @@
 html, body, #root { height: 100%; }
 body {
   margin: 0;
+  /* Fixed attachment anchors the gradients to the viewport, so a long page (the
+     back office runs well past one screen) does not show a seam where they end. */
   background:
     radial-gradient(1100px 620px at 15% -10%, var(--brand-3) 0%, transparent 55%),
     radial-gradient(900px 520px at 88% 0%, var(--brand-2) 0%, transparent 50%),
     var(--ground);
+  background-attachment: fixed, fixed, fixed;
+  background-repeat: no-repeat;
   color: var(--ink);
   font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;

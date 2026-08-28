@@ -309,3 +309,52 @@
   width: 42px; height: 42px; object-fit: contain; background: var(--surface);
   border-radius: 8px; padding: 4px; flex: 0 0 auto;
 }
+
+/* ---------------------------------------------------------------- symbol list controls */
+.listbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 1rem; flex-wrap: wrap; margin-bottom: 1.1rem;
+  padding-bottom: .9rem; border-bottom: 1px solid var(--line);
+}
+.chips { display: flex; gap: .35rem; flex-wrap: wrap; }
+.chip {
+  display: inline-flex; align-items: center; gap: .35rem;
+  border: 1px solid var(--line-2); background: var(--surface); border-radius: 100px;
+  padding: .34rem .75rem; font-size: .8rem; font-weight: 600; cursor: pointer;
+  color: var(--ink-2);
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.chip:hover { border-color: var(--brand-1); }
+.chip[data-on='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
+.chip[data-on='true'] .count { background: rgba(255,255,255,.24); color: #fff; }
+
+.sortby { display: inline-flex; align-items: center; gap: .5rem; }
+.sortby > span {
+  font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.sortby select {
+  font: inherit; font-size: .84rem; padding: .34rem .6rem; width: auto;
+  border: 1px solid var(--line-2); border-radius: 100px;
+  background: var(--surface); color: var(--ink); cursor: pointer;
+}
+
+/* Each type gets its own labelled box, so the three kinds never blur together. */
+.sym-section { margin-bottom: 1.6rem; }
+.sym-section:last-child { margin-bottom: 0; }
+.sym-section h4 {
+  display: flex; align-items: baseline; gap: .55rem; flex-wrap: wrap;
+  margin: 0 0 .75rem; padding-left: .6rem; border-left: 3px solid var(--line-2);
+  font-size: .82rem;
+}
+.sym-section[data-kind='normal']  h4 { border-left-color: var(--brand-1); }
+.sym-section[data-kind='wild']    h4 { border-left-color: var(--accent); }
+.sym-section[data-kind='scatter'] h4 { border-left-color: var(--danger); }
+.sec-name {
+  font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .72rem;
+}
+.sym-section[data-kind='wild']    .sec-name { color: var(--accent); }
+.sym-section[data-kind='scatter'] .sec-name { color: var(--danger); }
+.sec-note {
+  flex: 1 1 260px; font-family: var(--font-ui); font-weight: 400;
+  font-size: .74rem; color: var(--ink-3); line-height: 1.45;
+}

@@ -3,6 +3,7 @@ import {
   archiveSymbol, saveSymbol, symbolUrl, uploadSymbolImage,
   type SymbolRow,
 } from '../../lib/admin';
+import { SymbolList } from './SymbolList';
 
 interface Props {
   symbols: SymbolRow[];
@@ -84,8 +85,6 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
     }
   }
 
-  const scatterCount = symbols.filter((s) => s.is_scatter).length;
-
   return (
     <div className="admin-pane">
       <form className="card form" onSubmit={submit} ref={formRef}>
@@ -153,39 +152,12 @@ export function SymbolsTab({ symbols, onChanged }: Props) {
         </div>
       </form>
 
-      <div className="card">
-        <h3>
-          Symbols <span className="count">{symbols.length}</span>
-          {symbols.length < 5 && <span className="warnpill">need at least 5</span>}
-          {scatterCount === 0 && <span className="infopill">no scatter yet — free spins are off</span>}
-        </h3>
-
-        {symbols.length === 0 ? (
-          <p className="empty">Nothing uploaded yet.</p>
-        ) : (
-          <div className="sym-grid">
-            {symbols.map((s) => (
-              <figure key={s.id} className="sym-card" data-editing={editing?.id === s.id ? 'true' : undefined}>
-                <div className="sym-img">
-                  <img src={symbolUrl(s.image_path)} alt={s.name} loading="lazy" />
-                </div>
-                <figcaption>
-                  <b>{s.name}</b>
-                  <span className="sym-meta">
-                    weight {s.weight}
-                    {s.is_wild && <em className="tag wild">wild</em>}
-                    {s.is_scatter && <em className="tag scatter">scatter · {s.scatter_free_spins}</em>}
-                  </span>
-                </figcaption>
-                <div className="sym-actions">
-                  <button className="linkish" onClick={() => edit(s)}>Edit</button>
-                  <button className="linkish danger" onClick={() => remove(s)}>Archive</button>
-                </div>
-              </figure>
-            ))}
-          </div>
-        )}
-      </div>
+      <SymbolList
+        symbols={symbols}
+        editingId={editing?.id ?? null}
+        onEdit={edit}
+        onArchive={remove}
+      />
     </div>
   );
 }

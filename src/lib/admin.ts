@@ -9,6 +9,7 @@ export interface SymbolRow {
   is_scatter: boolean;
   scatter_free_spins: number;
   is_active: boolean;
+  created_at: string;
 }
 
 export interface CombinationRow {
