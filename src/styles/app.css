@@ -36,8 +36,22 @@
   padding: clamp(.5rem, 3vw, 2rem) 1rem 3rem;
 }
 
+/* 644 = the original 560 plus 15%. Everything that lines up with the board reads
+   its width from here rather than repeating the number. */
+:root {
+  --board-w: 644px;
+  --controls-w: 136px;
+  --play-gap: 1rem;
+  --stage-w: min(796px, 100%);   /* 644 + 16 + 136 */
+}
+
+.play-area {
+  width: var(--stage-w);
+  display: flex; align-items: flex-start; gap: var(--play-gap);
+}
+
 .board {
-  width: min(560px, 100%);
+  flex: 1 1 auto; min-width: 0; max-width: var(--board-w);
   background: linear-gradient(160deg, var(--brand-2), var(--brand-3) 55%, var(--brand-4));
   padding: 10px; border-radius: var(--r-lg); box-shadow: var(--shadow-2);
 }
@@ -93,23 +107,26 @@
 
 /* ---------------------------------------------------------------- controls */
 .controls {
-  width: min(560px, 100%); display: flex; align-items: center; justify-content: space-between;
-  gap: 1rem; flex-wrap: wrap;
+  flex: 0 0 var(--controls-w); width: var(--controls-w);
+  display: flex; flex-direction: column; gap: .9rem;
 }
-.control-row { display: flex; align-items: center; gap: .7rem; }
+.control-row { display: flex; flex-direction: column; align-items: stretch; gap: .45rem; }
 .control-label {
   font-size: .7rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+  text-align: center;
 }
-.bets { display: flex; gap: .3rem; flex-wrap: wrap; }
+.bets { display: flex; flex-direction: column; gap: .35rem; }
 .bet {
-  font-family: var(--font-num); font-size: .84rem; font-variant-numeric: tabular-nums;
-  padding: .45rem .6rem; min-width: 46px; cursor: pointer;
+  font-family: var(--font-num); font-size: .9rem; font-variant-numeric: tabular-nums;
+  padding: .55rem .6rem; width: 100%; cursor: pointer;
   background: var(--surface); border: 1px solid var(--line-2); border-radius: 10px;
   transition: background-color .15s ease, border-color .15s ease, color .15s ease;
 }
 .bet:hover:not(:disabled) { border-color: var(--brand-1); }
 .bet[data-active='true'] { background: var(--accent); border-color: var(--accent); color: #fff; }
 .bet:disabled { opacity: .38; cursor: not-allowed; }
+
+.controls .spin { width: 100%; padding: .95rem 1rem; }
 
 .spin {
   cursor: pointer; border: none; border-radius: 999px; padding: .8rem 2.4rem;
@@ -124,6 +141,23 @@
 
 .message {
   margin: 0; color: var(--danger); font-size: .9rem; font-weight: 600;
+}
+
+/* Below this the fixed control column leaves too little room for five reels, so
+   the controls go back under the board and the bets lie flat again. */
+@media (max-width: 720px) {
+  .play-area { flex-direction: column; align-items: center; }
+  .board { width: 100%; }   /* still capped at --board-w, just centred */
+  .controls {
+    flex: none; width: 100%;
+    flex-direction: row; align-items: center; justify-content: space-between;
+    gap: 1rem; flex-wrap: wrap;
+  }
+  .control-row { flex-direction: row; align-items: center; gap: .7rem; }
+  .control-label { text-align: left; }
+  .bets { flex-direction: row; flex-wrap: wrap; gap: .3rem; }
+  .bet { width: auto; min-width: 46px; }
+  .controls .spin { width: auto; padding: .8rem 2.4rem; }
 }
 .devnote {
   margin: 0; max-width: 46ch; text-align: center; font-size: .78rem; color: var(--ink-3);
@@ -398,7 +432,7 @@
 .tile-badge.scatter { background: var(--danger); }
 
 .outcome {
-  width: min(560px, 100%); text-align: center; font-size: .95rem; color: var(--ink-2);
+  width: var(--stage-w); text-align: center; font-size: .95rem; color: var(--ink-2);
   background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-md);
   padding: .8rem 1rem; display: flex; flex-direction: column; gap: .35rem;
 }
@@ -408,7 +442,7 @@
 .freespins { font-size: .86rem; color: var(--accent); }
 /* Shown on its own when the page has just loaded and there is no spin result yet. */
 .freespins.standalone {
-  width: min(560px, 100%); margin: 0; text-align: center;
+  width: var(--stage-w); margin: 0; text-align: center;
   background: var(--brand-4); border: 1px solid var(--win); border-radius: var(--r-md);
   padding: .7rem 1rem; color: var(--ink);
 }
@@ -419,7 +453,7 @@
 /* Shown for as long as the penalty is actually being served, not just on the spin
    that triggered it. */
 .yellow.standalone {
-  width: min(560px, 100%); margin: 0; text-align: center;
+  width: var(--stage-w); margin: 0; text-align: center;
   border: 1px solid #E8C77A; border-radius: var(--r-md); padding: .7rem 1rem;
 }
 

@@ -196,11 +196,26 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
       </header>
 
       <main className="stage">
-        <Board
-          grid={grid} byId={byId} pool={symbols} spinToken={spinToken}
-          winningLines={result?.lines ?? []} highlighted={null}
-          onAllSettled={() => setSpinning(false)}
-        />
+        {/* Board and controls sit side by side: the bet column and Spin are within
+            reach of the reels rather than below the fold on a laptop. */}
+        <div className="play-area">
+          <Board
+            grid={grid} byId={byId} pool={symbols} spinToken={spinToken}
+            winningLines={result?.lines ?? []} highlighted={null}
+            onAllSettled={() => setSpinning(false)}
+          />
+
+          <div className="controls">
+            <div className="control-row">
+              <span className="control-label">Bet</span>
+              <BetSelector value={bet} onChange={setBet}
+                           disabled={spinning || freeSpinsLeft > 0} affordable={affordable} />
+            </div>
+            <button className="spin" onClick={spin} disabled={spinning}>
+              {spinning ? 'Spinning…' : freeSpinsLeft > 0 ? `Free spin (${freeSpinsLeft})` : 'Spin'}
+            </button>
+          </div>
+        </div>
 
         {/* Both of these are read from the server, not from the last spin, so
             refreshing the page or coming back to the tab cannot appear to swallow
@@ -235,17 +250,6 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
             <WhyPanel grid={result.grid} />
           </div>
         )}
-
-        <div className="controls">
-          <div className="control-row">
-            <span className="control-label">Bet</span>
-            <BetSelector value={bet} onChange={setBet}
-                         disabled={spinning || freeSpinsLeft > 0} affordable={affordable} />
-          </div>
-          <button className="spin" onClick={spin} disabled={spinning}>
-            {spinning ? 'Spinning…' : freeSpinsLeft > 0 ? `Free spin (${freeSpinsLeft})` : 'Spin'}
-          </button>
-        </div>
 
         {message && <p className="message" role="status">{message}</p>}
       </main>
