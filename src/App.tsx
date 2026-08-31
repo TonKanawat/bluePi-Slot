@@ -6,6 +6,7 @@ import { SignIn } from './components/SignIn';
 import { Notice } from './components/Notice';
 import { WhyPanel } from './components/WhyPanel';
 import { AdminPanel } from './components/AdminPanel';
+import { RewardsPanel } from './components/RewardsPanel';
 import { supabase } from './lib/supabase';
 import { useSession } from './lib/session';
 import {
@@ -22,6 +23,7 @@ export default function App() {
   const [readiness, setReadiness] = useState<Readiness | null>(null);
   const [readinessError, setReadinessError] = useState<string | null>(null);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showRewards, setShowRewards] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -88,6 +90,17 @@ export default function App() {
     );
   }
 
+  if (showRewards) {
+    return (
+      <RewardsPanel
+        email={profile.email}
+        isAdmin={isAdmin}
+        onSignOut={signOut}
+        onBack={() => setShowRewards(false)}
+      />
+    );
+  }
+
   if (readiness && !readiness.ready) {
     return (
       <Notice
@@ -108,14 +121,16 @@ export default function App() {
       email={profile.email}
       isAdmin={isAdmin}
       onOpenAdmin={() => setShowAdmin(true)}
+      onOpenRewards={() => setShowRewards(true)}
     />
   );
 }
 
 /** The playable board. Every spin is decided by the server: the grid, the win and
  *  the wallet all come back from one call, and the browser only animates them. */
-function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
+function Game({ onSignOut, email, isAdmin, onOpenAdmin, onOpenRewards }: {
   onSignOut: () => void; email: string; isAdmin: boolean; onOpenAdmin: () => void;
+  onOpenRewards: () => void;
 }) {
   const [symbols, setSymbols] = useState<SymbolRow[]>([]);
   const [grid, setGrid] = useState<string[][]>([]);
@@ -190,6 +205,7 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
         <Wallets freePoints={wallet.free_points} points={wallet.points} />
         <div className="who">
           <span className="who-email">{email}</span>
+          <button className="linkish" onClick={onOpenRewards}>Rewards</button>
           {isAdmin && <button className="linkish" onClick={onOpenAdmin}>Back office</button>}
           <button className="linkish" onClick={onSignOut}>Sign out</button>
         </div>

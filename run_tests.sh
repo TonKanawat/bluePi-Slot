@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Installs every migration into a scratch database and runs all four suites.
+# Installs every migration into a scratch database and runs every suite.
 # Needs a local Postgres 16 — never point this at Supabase, the tests truncate tables.
 set -euo pipefail
 DB="${1:-slot_test}"
@@ -11,7 +11,7 @@ for f in supabase/migrations/*.sql; do
 done
 
 total=0
-for t in engine spin rls accounts; do
+for t in engine spin rls accounts backoffice rewards; do
   out=$(psql -d "$DB" -f "tests/${t}_test.sql" 2>&1) || { echo "$out" | grep -i error; exit 1; }
   n=$(echo "$out" | grep -c 'NOTICE:  ok ')
   total=$((total + n))

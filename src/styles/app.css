@@ -485,6 +485,40 @@
 .adjust .field.grow { flex: 1 1 200px; }
 .spin.small { padding: .5rem 1.2rem; font-size: .86rem; border-radius: 10px; }
 
+/* ---------------------------------------------------------------- rewards */
+.prize-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .8rem;
+}
+.prize {
+  border: 1px solid var(--line); border-radius: 12px; padding: 1rem;
+  display: flex; flex-direction: column; align-items: center; gap: .55rem;
+  background: var(--ground); text-align: center;
+}
+.prize[data-affordable='true'] { border-color: var(--win); background: var(--brand-4); }
+.prize-name { font-size: 1rem; }
+.prize-price {
+  font-family: var(--font-num); font-size: 1.5rem; font-weight: 500;
+  font-variant-numeric: tabular-nums; line-height: 1.1;
+}
+.prize-price small {
+  display: block; font-size: .6rem; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--ink-3); font-family: var(--font-ui); margin-top: .15rem;
+}
+.prize-short { font-size: .72rem; color: var(--ink-3); }
+
+.claim-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.claim {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  flex-wrap: wrap;
+  border: 1px solid var(--line); border-radius: 12px; padding: .7rem .9rem;
+  background: var(--ground);
+}
+.claim[data-off='true'] { opacity: .55; }
+.claim-meta { display: block; font-size: .74rem; color: var(--ink-3); margin-top: .15rem; }
+.claim-actions { display: flex; align-items: center; gap: .8rem; }
+.field.inline { flex: 0 0 110px; }
+.field.inline input { padding: .35rem .5rem; font-size: .85rem; }
+
 /* ---------------------------------------------------------------- why panel */
 .why { margin-top: .3rem; }
 .why > .linkish { font-size: .82rem; }
