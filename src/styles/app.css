@@ -61,16 +61,30 @@
   transition-timing-function: cubic-bezier(.16, .84, .28, 1);
   will-change: transform;
 }
+/* The cell must be square so five of them fill the reel's 1:5 viewport. Its only
+   child is taken out of flow: a flex item in a column whose content has an intrinsic
+   height gets measured from that content, and a portrait photo then stretches the
+   cell and pushes the fifth row out of sight. Absolute positioning leaves nothing
+   in flow, so aspect-ratio alone decides the height. */
 .reel-cell {
-  flex: 0 0 auto; width: 100%; aspect-ratio: 1; display: grid; place-items: center;
+  flex: 0 0 auto; width: 100%; aspect-ratio: 1;
+  position: relative; overflow: hidden;
   border-radius: 10px; transition: background-color .25s ease;
 }
 .reel-cell[data-lit='true'] { background: var(--brand-4); }
 
 /* Spec: 10% padding between the symbol and the lane. */
-.tile { width: 100%; height: 100%; padding: var(--lane-pad); transition: opacity .25s ease; }
+.tile {
+  position: absolute; inset: 0;
+  padding: var(--lane-pad); transition: opacity .25s ease;
+}
 .tile[data-dim='true'] { opacity: .32; }
-.tile img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* cover, not contain: the symbols are portrait photographs, and letterboxing them
+   into a square lane leaves the board mostly empty. */
+.tile img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center top;
+  border-radius: 9px; display: block;
+}
 .tile-face {
   width: 100%; height: 100%; border-radius: 9px; display: grid; place-items: center;
   font-size: clamp(.42rem, 1.5vw, .62rem); font-weight: 700; letter-spacing: .04em;
@@ -373,7 +387,6 @@
 }
 
 /* ---------------------------------------------------------------- live board */
-.tile img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .tile-blank { width: 100%; height: 100%; border-radius: 9px; background: var(--surface-2); }
 
 .outcome {
