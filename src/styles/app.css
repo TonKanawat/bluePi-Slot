@@ -398,6 +398,12 @@
 .outcome p { margin: 0; }
 .outcome .tag { margin-left: .5rem; }
 .freespins { font-size: .86rem; color: var(--accent); }
+/* Shown on its own when the page has just loaded and there is no spin result yet. */
+.freespins.standalone {
+  width: min(560px, 100%); margin: 0; text-align: center;
+  background: var(--brand-4); border: 1px solid var(--win); border-radius: var(--r-md);
+  padding: .7rem 1rem; color: var(--ink);
+}
 .yellow {
   font-size: .86rem; font-weight: 600; color: #8A6100;
   background: #FDF3D8; border-radius: 8px; padding: .35rem .6rem;

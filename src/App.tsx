@@ -9,8 +9,9 @@ import { AdminPanel } from './components/AdminPanel';
 import { supabase } from './lib/supabase';
 import { useSession } from './lib/session';
 import {
-  fetchActiveSymbols, fetchReadiness, fetchWallet, play,
-  type Readiness, type SpinResult, type Wallet,
+  fetchActiveSymbols, fetchFreeSpins, fetchReadiness, fetchWallet, play,
+  NO_FREE_SPINS,
+  type FreeSpins, type Readiness, type SpinResult, type Wallet,
 } from './lib/api';
 import type { SymbolRow } from './lib/admin';
 import type { Bet } from './game/types';
@@ -123,21 +124,24 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
   const [bet, setBet] = useState<Bet>(25);
   const [wallet, setWallet] = useState<Wallet>({ free_points: 0, points: 0 });
   const [result, setResult] = useState<SpinResult | null>(null);
+  // Server-held, so it survives a refresh. Never derived from the last spin alone.
+  const [freeSpins, setFreeSpins] = useState<FreeSpins>(NO_FREE_SPINS);
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const byId = useMemo(() => new Map(symbols.map((s) => [s.id, s])), [symbols]);
   const affordable = wallet.free_points + wallet.points;
-  const freeSpinsLeft = result?.free_spins_left ?? 0;
+  const freeSpinsLeft = freeSpins.remaining;
 
   // Load the real symbols and the real balance before anything is shown.
   useEffect(() => {
     let alive = true;
-    Promise.all([fetchActiveSymbols(), fetchWallet()])
-      .then(([syms, w]) => {
+    Promise.all([fetchActiveSymbols(), fetchWallet(), fetchFreeSpins()])
+      .then(([syms, w, fs]) => {
         if (!alive) return;
         setSymbols(syms);
         setWallet(w);
+        setFreeSpins(fs);
         // A resting board, drawn from the real symbol set, before the first spin.
         setGrid(Array.from({ length: 5 }, () =>
           Array.from({ length: 5 }, () => syms[Math.floor(Math.random() * syms.length)]?.id ?? '')));
@@ -160,6 +164,13 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
       setResult(r);
       setGrid(r.grid);
       setWallet({ free_points: r.free_points, points: r.points });
+      setFreeSpins((prev) => ({
+        remaining:     r.free_spins_left,
+        round:         r.free_spin_round,
+        rounds_max:    prev.rounds_max,
+        stake:         r.free_spins_left > 0 ? r.bet : null,
+        ban_bets_left: r.ban_bets_left,
+      }));
       setSpinToken((t) => t + 1);
     } catch (err) {
       setSpinning(false);
@@ -191,6 +202,16 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
           onAllSettled={() => setSpinning(false)}
         />
 
+        {/* Read from the server, not from the last spin, so refreshing the page or
+            coming back to the tab cannot appear to swallow the chain. */}
+        {freeSpinsLeft > 0 && (
+          <p className="freespins standalone" role="status">
+            <b>{freeSpinsLeft} free {freeSpinsLeft === 1 ? 'spin' : 'spins'} left</b>
+            {' · '}round {freeSpins.round} of {freeSpins.rounds_max}
+            {freeSpins.stake !== null && <>{' · '}playing at {freeSpins.stake} points</>}
+          </p>
+        )}
+
         {result && !spinning && (
           <div className="outcome" data-win={result.payout > 0 ? 'true' : undefined}>
             {result.line_count > 0 ? (
@@ -202,13 +223,6 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
               </p>
             ) : (
               <p>No winning lines this time.{result.was_free_spin && <span className="tag rule">free spin</span>}</p>
-            )}
-            {freeSpinsLeft > 0 && (
-              <p className="freespins">
-                <b>{freeSpinsLeft} free {freeSpinsLeft === 1 ? 'spin' : 'spins'} left</b>
-                {' · '}round {result.free_spin_round} of 3
-                {' · '}playing at {result.bet} points
-              </p>
             )}
             <WhyPanel grid={result.grid} />
             {result.yellow_card && (

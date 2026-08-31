@@ -43,6 +43,20 @@ export interface SpinResult {
 
 export interface Wallet { free_points: number; points: number; }
 
+/** What the server still owes this player. Held server-side, so it survives a
+ *  refresh, a tab switch, or playing on from another device. */
+export interface FreeSpins {
+  remaining: number;
+  round: number;
+  rounds_max: number;
+  stake: number | null;
+  ban_bets_left: number;
+}
+
+export const NO_FREE_SPINS: FreeSpins = {
+  remaining: 0, round: 0, rounds_max: 3, stake: null, ban_bets_left: 0,
+};
+
 function client() {
   if (!supabase) throw new Error('The site is not connected to its database.');
   return supabase;
@@ -73,6 +87,13 @@ export async function play(bet: number): Promise<SpinResult> {
   const { data, error } = await client().rpc('play', { p_bet: bet });
   if (error) throw new Error(error.message);
   return data as SpinResult;
+}
+
+/** Asked on load, so a refresh cannot appear to swallow a free-spin chain. */
+export async function fetchFreeSpins(): Promise<FreeSpins> {
+  const { data, error } = await client().rpc('my_free_spins');
+  if (error) throw new Error(error.message);
+  return (data as FreeSpins[])?.[0] ?? NO_FREE_SPINS;
 }
 
 export interface LineExplanation {
