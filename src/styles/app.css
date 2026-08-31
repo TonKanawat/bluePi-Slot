@@ -333,7 +333,17 @@
 .pickall .linkish { font-size: .72rem; }
 .linkish.danger { color: var(--danger); }
 
-.pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: .5rem; }
+/* Six across, as asked. Narrow screens fall back rather than crushing the tiles. */
+.pick-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: .5rem; }
+@media (max-width: 760px) { .pick-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 480px) { .pick-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.picksearch {
+  font: inherit; font-size: .9rem; padding: .5rem .75rem; width: 100%;
+  border: 1px solid var(--line-2); border-radius: 10px;
+  background: var(--surface); color: var(--ink); margin-bottom: .1rem;
+}
+.picksearch:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(75,78,196,.14); }
 .pick {
   border: 1px solid var(--line-2); border-radius: 10px; background: var(--surface);
   padding: .4rem; cursor: pointer; display: flex; flex-direction: column;
@@ -347,12 +357,26 @@
 .combo-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .8rem; }
 .combo { border: 1px solid var(--line); border-radius: 12px; padding: .8rem .9rem; background: var(--ground); }
 .combo-head { display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem; flex-wrap: wrap; }
-.combo-syms { display: flex; gap: .3rem; flex-wrap: wrap; margin-bottom: .5rem; }
-.combo-syms img {
-  width: 34px; height: 34px; object-fit: contain; background: var(--surface-2);
-  border-radius: 7px; padding: 3px;
+.combo-syms { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: .6rem; }
+/* 51px is the old 34px plus 50%. The name sits under each picture, because an
+   admin checking a group should not have to hover every tile to read it. */
+.combo-sym { margin: 0; width: 51px; display: flex; flex-direction: column; gap: .18rem; }
+.combo-sym img {
+  width: 51px; height: 51px; object-fit: contain; background: var(--surface-2);
+  border-radius: 9px; padding: 4px;
+}
+.combo-sym figcaption {
+  font-size: .58rem; line-height: 1.25; color: var(--ink-3); text-align: center;
+  overflow-wrap: anywhere;
 }
 .combo-actions { display: flex; gap: .9rem; }
+
+.pager {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--line);
+}
+.pager .linkish:disabled { opacity: .35; cursor: default; text-decoration: none; }
+.pager-now { font-family: var(--font-num); font-size: .76rem; color: var(--ink-3); }
 
 /* Grid and flex children default to min-width:auto, so a text input refuses to
    shrink below its intrinsic size and punches out of its column. */
