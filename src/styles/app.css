@@ -388,6 +388,14 @@
 
 /* ---------------------------------------------------------------- live board */
 .tile-blank { width: 100%; height: 100%; border-radius: 9px; background: var(--surface-2); }
+.tile-badge {
+  position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%);
+  font-family: var(--font-num); font-size: .58rem; font-weight: 700; letter-spacing: .06em;
+  padding: .1rem .34rem; border-radius: 100px; color: #fff; white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+.tile-badge.wild { background: var(--accent); }
+.tile-badge.scatter { background: var(--danger); }
 
 .outcome {
   width: min(560px, 100%); text-align: center; font-size: .95rem; color: var(--ink-2);

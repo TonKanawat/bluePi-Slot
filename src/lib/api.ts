@@ -102,6 +102,9 @@ export interface LineExplanation {
   symbols: string;
   won: boolean;
   group: string | null;
+  /** Wilds standing in on this line — the usual reason a win looks wrong. */
+  wilds: number;
+  wild_names: string | null;
   reason: string | null;
 }
 

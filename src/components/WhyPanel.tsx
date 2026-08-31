@@ -50,9 +50,18 @@ export function WhyPanel({ grid }: { grid: string[][] }) {
                     <td className="num">{r.payline}<span className="fam">{r.family}</span></td>
                     <td className="syms">{r.symbols}</td>
                     <td>
-                      {r.won
-                        ? <b className="wonlbl">Wins — {r.group}</b>
-                        : <span className="reason">{r.reason ?? 'No group matches these symbols.'}</span>}
+                      {r.won ? (
+                        <>
+                          <b className="wonlbl">Wins — {r.group}</b>
+                          {r.wilds > 0 && (
+                            <span className="reason">
+                              {r.wild_names} stood in as {r.wilds === 1 ? 'a wild' : 'wilds'}
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="reason">{r.reason ?? 'No group matches these symbols.'}</span>
+                      )}
                     </td>
                   </tr>
                 ))}
