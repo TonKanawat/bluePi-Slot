@@ -416,6 +416,12 @@
   font-size: .86rem; font-weight: 600; color: #8A6100;
   background: #FDF3D8; border-radius: 8px; padding: .35rem .6rem;
 }
+/* Shown for as long as the penalty is actually being served, not just on the spin
+   that triggered it. */
+.yellow.standalone {
+  width: min(560px, 100%); margin: 0; text-align: center;
+  border: 1px solid #E8C77A; border-radius: var(--r-md); padding: .7rem 1rem;
+}
 
 /* ---------------------------------------------------------------- people table */
 .ptable { border-collapse: collapse; width: 100%; min-width: 620px; }

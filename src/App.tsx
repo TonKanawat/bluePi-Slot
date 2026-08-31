@@ -202,8 +202,16 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
           onAllSettled={() => setSpinning(false)}
         />
 
-        {/* Read from the server, not from the last spin, so refreshing the page or
-            coming back to the tab cannot appear to swallow the chain. */}
+        {/* Both of these are read from the server, not from the last spin, so
+            refreshing the page or coming back to the tab cannot appear to swallow
+            the chain or quietly drop a penalty that is still being served. */}
+        {freeSpins.ban_bets_left > 0 && (
+          <p className="yellow standalone" role="status">
+            <b>Yellow card</b> · scatters pay no free spins for your next{' '}
+            {freeSpins.ban_bets_left} {freeSpins.ban_bets_left === 1 ? 'bet' : 'bets'}
+          </p>
+        )}
+
         {freeSpinsLeft > 0 && (
           <p className="freespins standalone" role="status">
             <b>{freeSpinsLeft} free {freeSpinsLeft === 1 ? 'spin' : 'spins'} left</b>
@@ -225,11 +233,6 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin }: {
               <p>No winning lines this time.{result.was_free_spin && <span className="tag rule">free spin</span>}</p>
             )}
             <WhyPanel grid={result.grid} />
-            {result.yellow_card && (
-              <p className="yellow">
-                Yellow card — no more free spins for {result.ban_bets_left} more bets.
-              </p>
-            )}
           </div>
         )}
 
