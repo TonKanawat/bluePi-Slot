@@ -350,6 +350,7 @@
   background: var(--surface); color: var(--ink); margin-bottom: .1rem;
 }
 .picksearch:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(75,78,196,.14); }
+.card > .picksearch { margin-bottom: .9rem; }
 .pick {
   border: 1px solid var(--line-2); border-radius: 10px; background: var(--surface);
   padding: .3rem; cursor: pointer; display: flex; flex-direction: column;
@@ -384,6 +385,13 @@
   border-radius: 9px; padding: 4px;
 }
 .combo-sym img { object-fit: cover; object-position: center top; }
+/* The tile that answered the search, so the eye lands on it without re-reading
+   every caption. */
+.combo-sym[data-hit='true'] img { box-shadow: 0 0 0 2px var(--accent); }
+.combo-sym[data-hit='true'] figcaption { color: var(--accent); font-weight: 700; }
+
+.findings { display: flex; flex-direction: column; gap: .4rem; margin: .1rem 0 .9rem; }
+.findings .hint b { color: var(--ink); }
 .combo-sym figcaption {
   font-size: .58rem; line-height: 1.2; color: var(--ink-3); text-align: center;
   overflow-wrap: anywhere;

@@ -27,6 +27,7 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [override, setOverride] = useState(false);
+  const [listQuery, setListQuery] = useState('');
   const [page, setPage] = useState(1);
 
   function reset() {
@@ -104,10 +105,47 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
       ? 'One to four members: any of them, in any order, repeats allowed.'
       : null;
 
+  // ---------------------------------------------------------------- searching the list
+  // One box, two questions: "what is in the PIG Team?" and "which groups is Pongneng
+  // in?" — the second is the one that is otherwise unanswerable without opening every
+  // group in turn.
+  const q = listQuery.trim().toLowerCase();
+
+  const matchedSymbols = useMemo(
+    () => (q ? symbols.filter((s) => s.name.toLowerCase().includes(q)) : []),
+    [symbols, q],
+  );
+
+  const filtered = useMemo(() => {
+    if (!q) return combinations;
+    return combinations.filter(
+      (c) => c.name.toLowerCase().includes(q)
+          || c.symbols.some((s) => s.name.toLowerCase().includes(q)),
+    );
+  }, [combinations, q]);
+
+  const byName = useMemo(
+    () => (q ? combinations.filter((c) => c.name.toLowerCase().includes(q)).length : 0),
+    [combinations, q],
+  );
+
+  /** How many active groups hold this symbol. Zero is worth saying out loud: a symbol
+   *  in no group loses every payline it lands on. */
+  function groupsHolding(symbolId: string) {
+    return combinations.filter(
+      (c) => c.is_active && c.symbols.some((s) => s.id === symbolId),
+    ).length;
+  }
+
+  function isHit(symbolName: string) {
+    return q.length > 0 && symbolName.toLowerCase().includes(q);
+  }
+
   // ---------------------------------------------------------------- list paging
-  const pages = Math.max(1, Math.ceil(combinations.length / PER_PAGE));
+  const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   useEffect(() => { if (page > pages) setPage(pages); }, [pages, page]);
-  const slice = combinations.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  useEffect(() => { setPage(1); }, [q]);
+  const slice = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   return (
     <div className="admin-pane">
@@ -226,11 +264,56 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
 
       <div className="card">
         <h3>
-          Winning combinations <span className="count">{combinations.length}</span>
+          Winning combinations{' '}
+          <span className="count">
+            {q ? `${filtered.length} of ${combinations.length}` : combinations.length}
+          </span>
           {pages > 1 && <span className="infopill">page {page} of {pages}</span>}
         </h3>
+
+        {combinations.length > 0 && (
+          <input
+            className="picksearch" type="search" value={listQuery}
+            onChange={(e) => setListQuery(e.target.value)}
+            placeholder="Search by group name, or by a symbol's name…"
+            aria-label="Search winning combinations"
+          />
+        )}
+
+        {q && (
+          <div className="findings">
+            {byName > 0 && (
+              <p className="hint">
+                {byName} group{byName === 1 ? '' : 's'} named like “{listQuery.trim()}”.
+              </p>
+            )}
+            {matchedSymbols.map((sym) => {
+              const n = groupsHolding(sym.id);
+              return n === 0 ? (
+                <p className="notice-line" key={sym.id}>
+                  <b>{sym.name} is in no winning combination.</b> Every payline it lands
+                  on loses, because a line pays only when all of its cells belong to one
+                  group.
+                </p>
+              ) : (
+                <p className="hint" key={sym.id}>
+                  <b>{sym.name}</b> is in {n} group{n === 1 ? '' : 's'}:{' '}
+                  {combinations
+                    .filter((c) => c.is_active && c.symbols.some((x) => x.id === sym.id))
+                    .map((c) => c.name)
+                    .join(', ')}.
+                </p>
+              );
+            })}
+          </div>
+        )}
+
         {combinations.length === 0 ? (
           <p className="empty">None yet. The slot stays locked until there is at least one.</p>
+        ) : filtered.length === 0 ? (
+          <p className="empty">
+            No group matches “{listQuery.trim()}” — neither a group name nor any member.
+          </p>
         ) : (
           <>
             <ul className="combo-list">
@@ -244,7 +327,8 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
                   </div>
                   <div className="combo-syms">
                     {c.symbols.map((s) => (
-                      <figure className="combo-sym" key={s.id}>
+                      <figure className="combo-sym" key={s.id}
+                              data-hit={isHit(s.name) ? 'true' : undefined}>
                         <img src={symbolUrl(s.image_path)} alt="" />
                         <figcaption>{s.name}</figcaption>
                       </figure>
@@ -264,8 +348,8 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
                 <button className="linkish" disabled={page === 1}
                         onClick={() => setPage((p) => p - 1)}>← Previous</button>
                 <span className="pager-now">
-                  {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, combinations.length)}
-                  {' of '}{combinations.length}
+                  {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)}
+                  {' of '}{filtered.length}
                 </span>
                 <button className="linkish" disabled={page === pages}
                         onClick={() => setPage((p) => p + 1)}>Next →</button>
