@@ -12,6 +12,21 @@ interface Props {
 
 const PER_PAGE = 10;
 
+/** The page numbers to draw. Everything, up to seven pages; beyond that a window
+ *  around the current page with the first and last always reachable, and a gap
+ *  marker where numbers were left out. */
+function pageNumbers(page: number, pages: number): (number | 'gap')[] {
+  if (pages <= 7) return Array.from({ length: pages }, (_, i) => i + 1);
+  const out: (number | 'gap')[] = [1];
+  const from = Math.max(2, page - 1);
+  const to = Math.min(pages - 1, page + 1);
+  if (from > 2) out.push('gap');
+  for (let n = from; n <= to; n++) out.push(n);
+  if (to < pages - 1) out.push('gap');
+  out.push(pages);
+  return out;
+}
+
 /** Order-independent identity of a group's membership, so two groups holding the
  *  same symbols in a different order still compare equal. */
 function memberKey(ids: string[]): string {
@@ -269,6 +284,7 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
             {q ? `${filtered.length} of ${combinations.length}` : combinations.length}
           </span>
           {pages > 1 && <span className="infopill">page {page} of {pages}</span>}
+
         </h3>
 
         {combinations.length > 0 && (
@@ -308,6 +324,32 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
           </div>
         )}
 
+        {pages > 1 && (
+          <nav className="pagenums" aria-label="Winning combination pages">
+            <button className="pagenum" disabled={page === 1}
+                    onClick={() => setPage((p) => p - 1)} aria-label="Previous page">‹</button>
+            {pageNumbers(page, pages).map((n, i) =>
+              n === 'gap' ? (
+                <span className="pagegap" key={`gap${i}`}>…</span>
+              ) : (
+                <button
+                  key={n} className="pagenum"
+                  data-on={n === page ? 'true' : undefined}
+                  aria-current={n === page ? 'page' : undefined}
+                  onClick={() => setPage(n)}
+                >
+                  {n}
+                </button>
+              ))}
+            <button className="pagenum" disabled={page === pages}
+                    onClick={() => setPage((p) => p + 1)} aria-label="Next page">›</button>
+            <span className="pagenum-note">
+              showing {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)}
+              {' of '}{filtered.length}
+            </span>
+          </nav>
+        )}
+
         {combinations.length === 0 ? (
           <p className="empty">None yet. The slot stays locked until there is at least one.</p>
         ) : filtered.length === 0 ? (
@@ -342,19 +384,6 @@ export function CombinationsTab({ symbols, combinations, onChanged }: Props) {
                 </li>
               ))}
             </ul>
-
-            {pages > 1 && (
-              <nav className="pager" aria-label="Winning combination pages">
-                <button className="linkish" disabled={page === 1}
-                        onClick={() => setPage((p) => p - 1)}>← Previous</button>
-                <span className="pager-now">
-                  {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)}
-                  {' of '}{filtered.length}
-                </span>
-                <button className="linkish" disabled={page === pages}
-                        onClick={() => setPage((p) => p + 1)}>Next →</button>
-              </nav>
-            )}
           </>
         )}
       </div>

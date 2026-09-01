@@ -411,12 +411,28 @@
 }
 .combo-actions { display: flex; gap: .9rem; }
 
-.pager {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--line);
+/* Numbered pages, directly under the search box: with seventeen groups the useful
+   question is "take me to page 2", not "step forward one". */
+.pagenums {
+  display: flex; align-items: center; gap: .28rem; flex-wrap: wrap;
+  margin: 0 0 1rem;
 }
-.pager .linkish:disabled { opacity: .35; cursor: default; text-decoration: none; }
-.pager-now { font-family: var(--font-num); font-size: .76rem; color: var(--ink-3); }
+.pagenum {
+  min-width: 2rem; height: 2rem; padding: 0 .5rem;
+  font-family: var(--font-num); font-size: .82rem;
+  border: 1px solid var(--line-2); border-radius: 8px; background: var(--surface);
+  color: var(--ink-2); cursor: pointer;
+  transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+.pagenum:hover:not(:disabled):not([data-on='true']) { border-color: var(--brand-1); }
+.pagenum[data-on='true'] {
+  background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700;
+}
+.pagenum:disabled { opacity: .35; cursor: default; }
+.pagegap { color: var(--ink-3); padding: 0 .15rem; font-size: .8rem; }
+.pagenum-note {
+  margin-left: auto; font-family: var(--font-num); font-size: .74rem; color: var(--ink-3);
+}
 
 /* Grid and flex children default to min-width:auto, so a text input refuses to
    shrink below its intrinsic size and punches out of its column. */
