@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { SymbolsTab } from './admin/SymbolsTab';
 import { CombinationsTab } from './admin/CombinationsTab';
 import { PlayersTab } from './admin/PlayersTab';
+import { RulesTab } from './admin/RulesTab';
 import {
   fetchCombinations, fetchPlayers, fetchSymbols,
   type CombinationRow, type PlayerRow, type SymbolRow,
@@ -16,7 +17,7 @@ interface Props {
   onPlay?: () => void;
 }
 
-type Tab = 'symbols' | 'combinations' | 'players';
+type Tab = 'symbols' | 'combinations' | 'players' | 'rules';
 
 export function AdminPanel({ email, onSignOut, onReadinessChange, onPlay }: Props) {
   const [tab, setTab] = useState<Tab>('symbols');
@@ -90,6 +91,11 @@ export function AdminPanel({ email, onSignOut, onReadinessChange, onPlay }: Prop
                   onClick={() => setTab('combinations')}>
             Winning combinations <span className="count">{combinations.length}</span>
           </button>
+          <button role="tab" aria-selected={tab === 'rules'}
+                  data-on={tab === 'rules' ? 'true' : undefined}
+                  onClick={() => setTab('rules')}>
+            Payout rules
+          </button>
           <button role="tab" aria-selected={tab === 'players'}
                   data-on={tab === 'players' ? 'true' : undefined}
                   onClick={() => setTab('players')}>
@@ -103,6 +109,7 @@ export function AdminPanel({ email, onSignOut, onReadinessChange, onPlay }: Prop
           <SymbolsTab symbols={symbols} combinations={combinations} onChanged={reload} />}
         {tab === 'combinations' &&
           <CombinationsTab symbols={symbols} combinations={combinations} onChanged={reload} />}
+        {tab === 'rules' && <RulesTab onChanged={reload} />}
         {tab === 'players' && <PlayersTab players={players} onChanged={reload} />}
       </main>
     </div>

@@ -554,6 +554,41 @@
 .adjust .field.grow { flex: 1 1 200px; }
 .spin.small { padding: .5rem 1.2rem; font-size: .86rem; border-radius: 10px; }
 
+/* ---------------------------------------------------------------- payout rules */
+.checkline { display: flex; align-items: center; gap: .55rem; font-size: .88rem; }
+.checkline input { width: 1rem; height: 1rem; }
+
+.simstats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: .7rem; margin: 1rem 0;
+}
+.stat {
+  border: 1px solid var(--line); border-radius: 12px; padding: .7rem .8rem;
+  background: var(--ground); display: flex; flex-direction: column; gap: .12rem;
+}
+.stat-label {
+  font-size: .64rem; letter-spacing: .09em; text-transform: uppercase; color: var(--ink-3);
+}
+.stat-value { font-family: var(--font-num); font-size: 1.15rem; font-weight: 500; }
+.stat-note { font-size: .7rem; color: var(--ink-3); line-height: 1.35; }
+
+.simbars { display: flex; flex-direction: column; gap: .18rem; margin: .8rem 0 .4rem; }
+.simbar { display: grid; grid-template-columns: 2.2rem 1fr 3rem; align-items: center; gap: .5rem; }
+.simbar-n {
+  font-family: var(--font-num); font-size: .74rem; color: var(--ink-2); text-align: right;
+}
+.simbar-track { height: .7rem; background: var(--surface-2); border-radius: 100px; overflow: hidden; }
+.simbar-fill { display: block; height: 100%; background: var(--accent); border-radius: 100px; }
+.simbar[data-over='true'] .simbar-fill { background: var(--brand-1); }
+.simbar[data-over='true'] .simbar-n { color: var(--ink-3); }
+.simbar-pct {
+  font-family: var(--font-num); font-size: .7rem; color: var(--ink-3); text-align: right;
+}
+
+.ladder input { width: 5.5rem; text-align: right; }
+.ptable tr[data-off='true'] { opacity: .5; }
+.rungnote { font-size: .72rem; color: var(--ink-3); }
+
 /* ---------------------------------------------------------------- rewards */
 .prize-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .8rem;
