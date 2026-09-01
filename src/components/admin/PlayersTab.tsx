@@ -73,11 +73,12 @@ export function PlayersTab({ players, onChanged }: Props) {
         <h3>Register an address</h3>
         <p className="hint">
           Nobody can sign in until their address is registered here. They then set
-          their own password the first time they log in.
+          their own password the first time they log in. Any domain is accepted —
+          the invitation itself is what controls who plays.
         </p>
         <label className="field">
           <span>Email</span>
-          <input type="email" value={email} required placeholder="someone@bluepi.co.th"
+          <input type="email" value={email} required placeholder="someone@example.com"
                  onChange={(e) => setEmail(e.target.value)} />
         </label>
         <label className="field">

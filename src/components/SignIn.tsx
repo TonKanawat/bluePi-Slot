@@ -66,7 +66,7 @@ export function SignIn() {
             <input
               type="email" value={email} autoComplete="username" required
               onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
-              placeholder="you@bluepi.co.th"
+              placeholder="you@example.com"
             />
           </label>
 

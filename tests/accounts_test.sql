@@ -26,15 +26,17 @@ insert into slot.app_user (id, email, role) values
 insert into slot.wallet (user_id, free_points, points)
 select id, 0, 0 from slot.app_user;
 
--- ---------------------------------------------------------------- the domain rule
+-- ---------------------------------------------------------------- the address rule
+-- 0020 removed the @bluepi.co.th restriction: the admin decides who plays, and the
+-- address can be from any domain. What is still enforced is lower case (claim_account
+-- matches auth.email() against this column exactly) and a usable shape.
 do $$
-declare ok boolean := false;
+declare ok boolean := true; n int;
 begin
-  begin
-    insert into slot.app_user (email) values ('outsider@gmail.com');
-  exception when check_violation then ok := true;
-  end;
-  perform slot.assert('a non-bluePi address is rejected', ok, true);
+  insert into slot.app_user (email) values ('outsider@gmail.com');
+  select count(*)::int into n from slot.app_user where email = 'outsider@gmail.com';
+  perform slot.assert('any domain can be registered', n, 1);
+  delete from slot.app_user where email = 'outsider@gmail.com';
 
   ok := false;
   begin
@@ -42,7 +44,43 @@ begin
   exception when check_violation then ok := true;
   end;
   perform slot.assert('addresses must be stored lower-case', ok, true);
+
+  ok := false;
+  begin
+    insert into slot.app_user (email) values ('not-an-address');
+  exception when check_violation then ok := true;
+  end;
+  perform slot.assert('something that is not an address is refused', ok, true);
+
+  ok := false;
+  begin
+    insert into slot.app_user (email) values ('bob@nodot');
+  exception when check_violation then ok := true;
+  end;
+  perform slot.assert('a domain with no dot is refused', ok, true);
 end $$;
+
+-- register_email lower-cases and trims, so an admin can type it however they like.
+set slot.test_user = '11110000-0000-0000-0000-000000000001';
+do $$
+declare uid uuid; e text; ok boolean := false;
+begin
+  uid := slot.register_email('  Someone@Example.COM ', '  Someone  ');
+  select u.email into e from slot.app_user u where u.id = uid;
+  perform slot.assert('a mixed-case outside address is registered lower-case',
+    e, 'someone@example.com');
+  perform slot.assert('and gets a wallet',
+    (select count(*)::int from slot.wallet w where w.user_id = uid), 1);
+
+  begin
+    perform slot.register_email('SOMEONE@example.com');
+  exception when unique_violation then ok := true;
+  end;
+  perform slot.assert('registering the same address twice is refused', ok, true);
+
+  delete from slot.app_user u where u.id = uid;
+end $$;
+reset slot.test_user;
 
 -- ---------------------------------------------------------------- one master only
 do $$

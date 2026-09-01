@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "_comment_build_check": "A plain build with no Supabase env vars is misleading: supabase is statically null, so Rollup drops everything after the not-connected branch and the bundle is ~146kB of React with no app in it. Dummy values keep the whole app in the graph.",
+    "build:check": "tsc -b && VITE_SUPABASE_URL=https://example.supabase.co VITE_SUPABASE_ANON_KEY=build-check vite build --outDir /tmp/bluepi-buildcheck --emptyOutDir",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"
   },
