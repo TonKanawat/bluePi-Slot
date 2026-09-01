@@ -6,10 +6,33 @@ type Mode = 'signin' | 'setup';
 const MIN_PW = 8;
 const MAX_PW = 10;   // the spec caps password length at 10 characters
 
+function Eye() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+         strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M1.5 12S5 5.5 12 5.5 22.5 12 22.5 12 19 18.5 12 18.5 1.5 12 1.5 12Z" />
+      <circle cx="12" cy="12" r="3.2" />
+    </svg>
+  );
+}
+
+function EyeOff() {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+         strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9.9 5.7A9.9 9.9 0 0 1 12 5.5c7 0 10.5 6.5 10.5 6.5a17.6 17.6 0 0 1-3.6 4.4" />
+      <path d="M6.5 7.4A17.4 17.4 0 0 0 1.5 12S5 18.5 12 18.5a9.9 9.9 0 0 0 4.2-.9" />
+      <path d="m9.8 9.9a3.2 3.2 0 0 0 4.4 4.4" />
+      <path d="M3 3l18 18" />
+    </svg>
+  );
+}
+
 export function SignIn() {
   const [mode, setMode] = useState<Mode>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [reveal, setReveal] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -72,12 +95,25 @@ export function SignIn() {
 
           <label className="field">
             <span>Password</span>
-            <input
-              type="password" value={password} required
-              maxLength={MAX_PW}
-              autoComplete={mode === 'setup' ? 'new-password' : 'current-password'}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            {/* The reveal is per-keystroke only: nothing is stored, and it resets to
+                hidden on every render of a fresh form. */}
+            <div className="pwwrap">
+              <input
+                type={reveal ? 'text' : 'password'} value={password} required
+                maxLength={MAX_PW}
+                autoComplete={mode === 'setup' ? 'new-password' : 'current-password'}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <button
+                type="button" className="pweye"
+                onClick={() => setReveal((v) => !v)}
+                aria-pressed={reveal}
+                aria-label={reveal ? 'Hide password' : 'Show password'}
+                title={reveal ? 'Hide password' : 'Show password'}
+              >
+                {reveal ? <EyeOff /> : <Eye />}
+              </button>
+            </div>
           </label>
 
           {error && <p className="auth-error" role="alert">{error}</p>}

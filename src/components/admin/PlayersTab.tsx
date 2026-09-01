@@ -91,6 +91,12 @@ export function PlayersTab({ players, onChanged }: Props) {
 
       <div className="card">
         <h3>People <span className="count">{players.length}</span></h3>
+        <p className="hint">
+          Passwords are held by Supabase Auth as one-way hashes, so nobody — including
+          you — can read them back. What is shown here is whether a person has set one
+          yet. To get someone back in, reset their password from the Supabase dashboard
+          under Authentication → Users; they choose a new one on their next sign-in.
+        </p>
         {players.length === 0 ? (
           <p className="empty">Nobody registered yet.</p>
         ) : (
@@ -99,6 +105,7 @@ export function PlayersTab({ players, onChanged }: Props) {
               <thead>
                 <tr>
                   <th scope="col">Person</th>
+                  <th scope="col">Password</th>
                   <th scope="col">Role</th>
                   <th scope="col" className="num">Free points</th>
                   <th scope="col" className="num">Wallet</th>
@@ -112,7 +119,23 @@ export function PlayersTab({ players, onChanged }: Props) {
                       <td>
                         <b>{p.display_name || p.email.split('@')[0]}</b>
                         <span className="pemail">{p.email}</span>
-                        {!p.first_login_at && <em className="tag rule">never signed in</em>}
+                      </td>
+                      {/* Passwords are stored by Supabase Auth as bcrypt hashes and
+                          cannot be read back by anyone, so what is useful here is
+                          whether one has been set — the answer to "why can't they log
+                          in?" — not the secret itself. */}
+                      <td>
+                        {p.first_login_at ? (
+                          <span className="pwstate" data-set="true">
+                            set
+                            <span className="pemail">
+                              {new Date(p.first_login_at).toLocaleDateString(undefined,
+                                { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="pwstate">not set yet</span>
+                        )}
                       </td>
                       <td>
                         {p.role === 'system_admin' ? (
@@ -137,7 +160,7 @@ export function PlayersTab({ players, onChanged }: Props) {
 
                     {editing === p.id && (
                       <tr className="adjrow">
-                        <td colSpan={5}>
+                        <td colSpan={6}>
                           <div className="adjust">
                             <label className="field">
                               <span>Free points ±</span>

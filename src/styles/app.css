@@ -211,6 +211,17 @@
   outline: none; border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(75, 78, 196, .14);
 }
+.pwwrap { position: relative; display: flex; }
+.pwwrap input { width: 100%; padding-right: 2.6rem; }
+.pweye {
+  position: absolute; right: .3rem; top: 50%; transform: translateY(-50%);
+  display: grid; place-items: center; width: 2rem; height: 2rem;
+  background: none; border: none; border-radius: 8px; cursor: pointer;
+  color: var(--ink-3);
+}
+.pweye:hover { color: var(--accent); background: var(--surface-2); }
+.pweye[aria-pressed='true'] { color: var(--accent); }
+
 .auth-submit { width: 100%; margin-top: .25rem; }
 .auth-error  { color: var(--danger); font-size: .88rem; margin: 0; font-weight: 600; }
 .auth-notice { color: var(--win);    font-size: .88rem; margin: 0; font-weight: 600; }
@@ -525,6 +536,11 @@
 }
 .ptable tbody tr[data-open='true'] { background: var(--surface-2); }
 .ptable tbody tr[data-open='true'] td { border-bottom: none; }
+.pwstate {
+  font-size: .78rem; color: var(--ink-3); display: flex; flex-direction: column;
+}
+.pwstate[data-set='true'] { color: var(--win); font-weight: 600; }
+
 .pemail { display: block; font-size: .72rem; color: var(--ink-3); font-family: var(--font-num); }
 .rolesel {
   font: inherit; font-size: .8rem; padding: .28rem .5rem; width: auto;
