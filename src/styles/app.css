@@ -605,6 +605,29 @@
 .ptable tr[data-off='true'] { opacity: .5; }
 .rungnote { font-size: .72rem; color: var(--ink-3); }
 
+/* ------------------------------------------------- winning combinations (players) */
+/* Two columns, ten rows. Below the breakpoint one column, because two columns of
+   symbol tiles on a phone leaves each group unreadable. */
+.combo-cols {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .8rem; align-items: start;
+}
+@media (max-width: 780px) { .combo-cols { grid-template-columns: minmax(0, 1fr); } }
+.combo-cols .combo { margin: 0; }
+
+.ladder-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); gap: .45rem;
+}
+.rung {
+  border: 1px solid var(--line); border-radius: 10px; padding: .45rem .6rem;
+  background: var(--ground); display: flex; align-items: baseline;
+  justify-content: space-between; gap: .5rem;
+}
+.rung-lines {
+  font-family: var(--font-num); font-size: .74rem; color: var(--ink-3);
+}
+.rung-mult { font-family: var(--font-num); font-size: .92rem; }
+
 /* ---------------------------------------------------------------- rewards */
 .prize-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: .8rem;

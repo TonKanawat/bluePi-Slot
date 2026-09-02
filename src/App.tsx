@@ -7,6 +7,7 @@ import { Notice } from './components/Notice';
 import { WhyPanel } from './components/WhyPanel';
 import { AdminPanel } from './components/AdminPanel';
 import { RewardsPanel } from './components/RewardsPanel';
+import { CombinationsPage } from './components/CombinationsPage';
 import { supabase } from './lib/supabase';
 import { useSession } from './lib/session';
 import {
@@ -24,6 +25,7 @@ export default function App() {
   const [readinessError, setReadinessError] = useState<string | null>(null);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showRewards, setShowRewards] = useState(false);
+  const [showCombos, setShowCombos] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -90,6 +92,18 @@ export default function App() {
     );
   }
 
+  // Reachable whether or not the board is configured: a player looking up the rules
+  // should not be blocked by a game that is mid-setup.
+  if (showCombos) {
+    return (
+      <CombinationsPage
+        email={profile.email}
+        onSignOut={signOut}
+        onBack={() => setShowCombos(false)}
+      />
+    );
+  }
+
   if (showRewards) {
     return (
       <RewardsPanel
@@ -122,15 +136,16 @@ export default function App() {
       isAdmin={isAdmin}
       onOpenAdmin={() => setShowAdmin(true)}
       onOpenRewards={() => setShowRewards(true)}
+      onOpenCombos={() => setShowCombos(true)}
     />
   );
 }
 
 /** The playable board. Every spin is decided by the server: the grid, the win and
  *  the wallet all come back from one call, and the browser only animates them. */
-function Game({ onSignOut, email, isAdmin, onOpenAdmin, onOpenRewards }: {
+function Game({ onSignOut, email, isAdmin, onOpenAdmin, onOpenRewards, onOpenCombos }: {
   onSignOut: () => void; email: string; isAdmin: boolean; onOpenAdmin: () => void;
-  onOpenRewards: () => void;
+  onOpenRewards: () => void; onOpenCombos: () => void;
 }) {
   const [symbols, setSymbols] = useState<SymbolRow[]>([]);
   const [grid, setGrid] = useState<string[][]>([]);
@@ -205,6 +220,7 @@ function Game({ onSignOut, email, isAdmin, onOpenAdmin, onOpenRewards }: {
         <Wallets freePoints={wallet.free_points} points={wallet.points} />
         <div className="who">
           <span className="who-email">{email}</span>
+          <button className="linkish" onClick={onOpenCombos}>Winning combinations</button>
           <button className="linkish" onClick={onOpenRewards}>Rewards</button>
           {isAdmin && <button className="linkish" onClick={onOpenAdmin}>Back office</button>}
           <button className="linkish" onClick={onSignOut}>Sign out</button>
