@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { fetchCombinations, symbolUrl, type CombinationRow } from '../lib/admin';
+import { fetchCombinations, symbolUrl, type CombinationRow, type SymbolRow } from '../lib/admin';
+import { fetchActiveSymbols } from '../lib/api';
 import { fetchLadder, type LadderRung } from '../lib/rules';
 
 interface Props {
@@ -27,29 +28,60 @@ function pageNumbers(page: number, pages: number): (number | 'gap')[] {
 
 export function CombinationsPage({ email, onSignOut, onBack }: Props) {
   const [groups, setGroups] = useState<CombinationRow[]>([]);
+  const [symbols, setSymbols] = useState<SymbolRow[]>([]);
   const [ladder, setLadder] = useState<LadderRung[]>([]);
+  const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let alive = true;
-    Promise.all([fetchCombinations(), fetchLadder()])
-      .then(([c, l]) => {
+    Promise.all([fetchCombinations(), fetchLadder(), fetchActiveSymbols()])
+      .then(([c, l, y]) => {
         if (!alive) return;
         setGroups(c);
         setLadder(l);
+        setSymbols(y);
       })
       .catch((e: Error) => alive && setError(e.message))
       .finally(() => alive && setLoading(false));
     return () => { alive = false; };
   }, []);
 
-  const pages = Math.max(1, Math.ceil(groups.length / PER_PAGE));
+  // One box, two questions: what is in a group, and which groups a person is in.
+  const q = query.trim().toLowerCase();
+
+  const matchedSymbols = useMemo(
+    () => (q ? symbols.filter((y) => y.name.toLowerCase().includes(q)) : []),
+    [symbols, q],
+  );
+
+  const filtered = useMemo(() => {
+    if (!q) return groups;
+    return groups.filter(
+      (c) => c.name.toLowerCase().includes(q)
+          || c.symbols.some((y) => y.name.toLowerCase().includes(q)),
+    );
+  }, [groups, q]);
+
+  const byName = useMemo(
+    () => (q ? groups.filter((c) => c.name.toLowerCase().includes(q)).length : 0),
+    [groups, q],
+  );
+
+  function groupsHolding(symbolId: string) {
+    return groups.filter((c) => c.symbols.some((y) => y.id === symbolId)).length;
+  }
+
+  const isHit = (name: string) => q.length > 0 && name.toLowerCase().includes(q);
+
+  const pages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
   useEffect(() => { if (page > pages) setPage(pages); }, [pages, page]);
+  useEffect(() => { setPage(1); }, [q]);
   const slice = useMemo(
-    () => groups.slice((page - 1) * PER_PAGE, page * PER_PAGE),
-    [groups, page],
+    () => filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE),
+    [filtered, page],
   );
 
   return (
@@ -72,7 +104,10 @@ export function CombinationsPage({ email, onSignOut, onBack }: Props) {
 
         <div className="card">
           <h3>
-            Winning combinations <span className="count">{groups.length}</span>
+            Winning combinations{' '}
+            <span className="count">
+              {q ? `${filtered.length} of ${groups.length}` : groups.length}
+            </span>
             {pages > 1 && <span className="infopill">page {page} of {pages}</span>}
           </h3>
           <p className="hint">
@@ -81,6 +116,42 @@ export function CombinationsPage({ email, onSignOut, onBack }: Props) {
             to four accepts repeats. A wild stands in for whatever member is missing,
             and a line matching several groups pays once, at the best multiplier.
           </p>
+
+          {groups.length > 0 && (
+            <input
+              className="picksearch" type="search" value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by group name, or by someone's name…"
+              aria-label="Search winning combinations"
+            />
+          )}
+
+          {q && (
+            <div className="findings">
+              {byName > 0 && (
+                <p className="hint">
+                  {byName} group{byName === 1 ? '' : 's'} named like “{query.trim()}”.
+                </p>
+              )}
+              {matchedSymbols.map((sym) => {
+                const n = groupsHolding(sym.id);
+                return n === 0 ? (
+                  <p className="hint" key={sym.id}>
+                    <b>{sym.name}</b> is in no winning combination, so a line containing
+                    that symbol never pays.
+                  </p>
+                ) : (
+                  <p className="hint" key={sym.id}>
+                    <b>{sym.name}</b> is in {n} group{n === 1 ? '' : 's'}:{' '}
+                    {groups
+                      .filter((c) => c.symbols.some((y) => y.id === sym.id))
+                      .map((c) => c.name)
+                      .join(', ')}.
+                  </p>
+                );
+              })}
+            </div>
+          )}
 
           {pages > 1 && (
             <nav className="pagenums" aria-label="Winning combination pages">
@@ -100,8 +171,8 @@ export function CombinationsPage({ email, onSignOut, onBack }: Props) {
               <button className="pagenum" disabled={page === pages}
                       onClick={() => setPage((p) => p + 1)} aria-label="Next page">›</button>
               <span className="pagenum-note">
-                showing {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, groups.length)}
-                {' of '}{groups.length}
+                showing {(page - 1) * PER_PAGE + 1}–{Math.min(page * PER_PAGE, filtered.length)}
+                {' of '}{filtered.length}
               </span>
             </nav>
           )}
@@ -110,6 +181,10 @@ export function CombinationsPage({ email, onSignOut, onBack }: Props) {
             <p className="empty">Loading…</p>
           ) : groups.length === 0 ? (
             <p className="empty">No winning combinations have been set up yet.</p>
+          ) : filtered.length === 0 ? (
+            <p className="empty">
+              Nothing matches “{query.trim()}” — neither a group name nor anyone in one.
+            </p>
           ) : (
             <div className="combo-cols">
               {slice.map((c) => (
@@ -124,7 +199,8 @@ export function CombinationsPage({ email, onSignOut, onBack }: Props) {
                   </div>
                   <div className="combo-syms">
                     {c.symbols.map((s) => (
-                      <figure className="combo-sym" key={s.id}>
+                      <figure className="combo-sym" key={s.id}
+                              data-hit={isHit(s.name) ? 'true' : undefined}>
                         <img src={symbolUrl(s.image_path)} alt="" />
                         <figcaption>{s.name}</figcaption>
                       </figure>
